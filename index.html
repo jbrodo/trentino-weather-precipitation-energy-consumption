@@ -1,0 +1,929 @@
+<html>
+
+<head>
+    <title>HTML5</title>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <!--<script type="text/javascript" src="jquery-1.9.1.min.js"></script>-->
+    <link rel="stylesheet" href="jquery-ui.css" />
+    <!--<script type="text/javascript" src="jquery-ui.js"></script>-->
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+    <!--<script type="text/javascript" src="leaflet.js"></script>-->
+    <!--<script type="text/javascript" src="SliderControl.js"></script>-->
+    <!--<script type="text/javascript" src="leaflet.SliderControl.min.js"></script>-->
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <!--<script type="text/javascript" src="topojson.v1.min.js"></script>-->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <!--<script  type="text/javascript" src="d3.min.js"></script> -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <!--<script type="text/javascript" src="underscore-min.js"></script>-->
+    <!--<script src="http://d3js.org/queue.v1.min.js"></script>-->
+    <style>
+
+        #header {
+            background-color:black;
+            color:white;
+            text-align:center;
+            padding:5px;
+        }
+        #nav {
+            line-height:30px;
+            background-color:#eeeeee;
+            height:300px;
+            width:100px;
+            float:left;
+            padding:5px;
+        }
+        #section {
+            width:350px;
+            float:left;
+            padding:10px;
+        }
+        #footer {
+            background-color: black;
+            color: white;
+            clear: both;
+            text-align: center;
+            padding: 5px;
+        }
+        .line-separator{
+            height:1px;
+            background:#717171;
+            border-bottom:1px solid #313030;
+        }
+
+        #slider .handle {
+            fill: #fff;
+            stroke: #000;
+            stroke-opacity: .5;
+            stroke-width: 1.25px;
+            cursor: crosshair;
+        }
+        #slider label {
+            position: absolute;
+            width: 8px;
+            margin-top: 20px;
+            margin-left: -5px;
+            margin-right: -5px;
+            text-align: center;
+            writing-mode: vertical-rl;
+            font-size: 8px;
+            -webkit-transform:rotate(90deg);
+            -moz-transform:rotate(90deg);
+            -o-transform: rotate(90deg);
+            -ms-transform:rotate(90deg);
+            transform: rotate(90deg);
+        }
+
+        #sliderday label {
+            position: absolute;
+            width: 8px;
+            margin-top: 20px;
+            margin-left: -5px;
+            text-align: center;
+            font-size: 8px;
+            writing-mode:vertical-rl;
+            -webkit-transform:rotate(90deg);
+            -moz-transform:rotate(90deg);
+            -o-transform: rotate(90deg);
+            -ms-transform:rotate(90deg);
+            transform: rotate(90deg);
+        }
+        #sliderlineset label {
+            position: absolute;
+            width: 8px;
+            margin-top: 20px;
+            margin-left: -5px;
+            text-align: center;
+            font-size: 8px;
+            writing-mode:vertical-rl;
+            -webkit-transform:rotate(90deg);
+            -moz-transform:rotate(90deg);
+            -o-transform: rotate(90deg);
+            -ms-transform:rotate(90deg);
+            transform: rotate(90deg);
+        }
+        #sliderprecipitation label {
+            position: absolute;
+            width: 8px;
+            margin-top: 20px;
+            margin-left: -5px;
+            text-align: center;
+            font-size: 8px;
+        }
+        #sliderconsume label {
+            position: absolute;
+            width: 8px;
+            margin-top: 20px;
+            margin-left: -5px;
+            text-align: center;
+            font-size: 8px;
+        }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+        .legend {
+            line-height: 18px;
+            color: #555;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+
+
+        .temporal-legend {
+              		padding: 6px 10px;
+              		font: 14px/16px Arial, Helvetica, sans-serif;
+              		background: white;
+               		background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+               		border-radius: 5px;
+        }
+        	#legendTitle {
+                   	  	text-align: center;
+                    	 	margin-bottom: 15px;
+                    		font-variant: small-caps;
+                 	}
+        	.symbolsContainer {
+                     		float: left;
+                  		margin-left: 50px;
+                  	}
+        	.legendCircle {
+                      	border-radius:50%;
+                       	border: 1px solid #537898;
+                       	background: rgba(113, 133, 152, .6);
+                  	 	display: inline-block;
+                  	}
+        	.legendValue {
+                      		position: absolute;
+                      		right: 8px;
+                display: inline-block;
+                  	}
+
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        #mapcanvas{
+            height: 100%;
+        }
+    </style>
+    <script>
+        //format = d3.time.format("yyyymmddHHMM");
+        //format = d3.time.format("%d-%m-%YT%H:%M:%S");
+        var geoJsonObject = [];
+        var selection = [];
+        var map;
+        var dates ;
+        var nested = [];
+        var testLayer;
+        var layeravgprecyrcle,layerlinesetcells;
+        var color;
+        var finaljson = "final.json";//"final.json";//"trentino-grid.geojson";
+        var info;
+        var linesets = [
+            "DG1000011","DG1000023","DG1000420","DG1000421","DG1000422","DG1000423","DG1000425","DG1000496","DG1000620","DG1000621","DG1000622","DG1000624","DG1000625","DG1000820","DG1000821","DG1000823","DG1000824","DG1000825","DG1001120","DG1001121","DG1001123","DG1001124","DG1001125","DG1001126","DG1001127","DG1001196","DG1001320","DG1001321","DG1001322","DG1001323","DG1001324","DG1002020","DG1002021","DG1002022","DG1002023","DG1002024","DG1002025","DG1002026","DG1002120","DG1002121","DG1002122","DG1002124","DG1002125","DG1002126","DG1002128","DG1002520","DG1002521","DG1002522","DG1002525","DG1002527","DG1002528","DG1002529","DG1002531","DG1002532","DG1002533","DG1002534","DG1002535","DG1002536","DG1002537","DG1002538","DG1002539","DG1003101","DG1003103","DG1003116","DG1003117","DG1003119","DG1003301","DG1003302","DG1003315","DG1003316","DG1003317","DG1003318","DG1010901","DG1010902","DG1010903","DG1011520","DG1011521","DG1011522","DG1011523","DG1011524","DG1011620","DG1011621","DG1011622","DG1011623","DG1011624","DG1011625","DG1011626","DG1011627","DG1011629","DG1011920","DG1011921","DG1011922","DG1011923","DG1011924","DG1011925","DG1011926","DG1011927","DG1011928","DG1011930","DG1011931","DG1012220","DG1012221","DG1012223","DG1012320","DG1012321","DG1012327","DG1012420","DG1012421","DG1012423","DG1012424","DG1012425","DG1012426","DG1012427","DG1012430","DG1012720","DG1012721","DG1012722","DG1012723","DG1012724","DG1012821","DG1012822","DG1012823","DG1012901","DG1012902","DG1012905","DG1012907","DG1012908","DG1012915","DG1012917","DG1012921","DG1012922","DG1012923","DG1012928","DG1012929","DG1013001","DG1013002","DG1013004","DG1013007","DG1013015","DG1013016","DG1013017","DG1013023","DG1013220","DG1013221","DG1013222","DG1013223","DG1013320","DG1013321","DG1013322","DG1013323","DG1013325","DG1013503","DG1013504","DG1013505","DG1013596","DG1013701","DG1013702","DG1013703","DG1013704","DG1013707","DG1013708","DG1022120","DG1022121","DG1022123","DG1022124","DG1022125","DG1022320","DG1022321","DG1022322","DG1022323","DG1026020","DG1026021","DG1026022","DG1026023","DG1026024","DG1026025","DG1026026","DG1026027","DG1026028","DG1026029","DG1026030","DG1026099","DG1031220","DG1031221","DG1056620","DG1056621","DG1056623","DG1056624","DG1056625","DG1056626","DG1056696","DG1099103","DG1099111","DG1099204","DG1099205","DG1099206","DG1099207","DG1099303","DG1099502","DG1099506"
+        ];
+        var selected = {
+            "DG1000011":1,"DG1000023":1,"DG1000420":1,"DG1000421":1,"DG1000422":1,"DG1000423":1,"DG1000425":1,"DG1000496":1,"DG1000620":1,"DG1000621":1,"DG1000622":1,"DG1000624":1,"DG1000625":1,"DG1000820":1,"DG1000821":1,"DG1000823":1,"DG1000824":1,"DG1000825":1,"DG1001120":1,"DG1001322":1,"DG1001323":1,"DG1001324":1,"DG1002020":1,"DG1002021":1,"DG1002022":1,"DG1002023":1,"DG1002024":1,"DG1002025":1,"DG1002026":1,"DG1002120":1,"DG1002121":1,"DG1002122":1,"DG1002124":1,"DG1002125":1,"DG1002126":1,"DG1002128":1,"DG1002520":1,"DG1002521":1,"DG1002522":1,"DG1002525":1,"DG1002527":1,"DG1002528":1,"DG1002529":1,"DG1002531":1,"DG1002532":1,"DG1002533":1,"DG1002534":1,"DG1002535":1,"DG1002536":1,"DG1002537":1,"DG1002538":1,"DG1002539":1,"DG1003101":1,"DG1003103":1,"DG1003116":1,"DG1003117":1,"DG1003119":1,"DG1003301":1,"DG1003302":1,"DG1003315":1,"DG1003316":1,"DG1003317":1,"DG1003318":1,"DG1010901":1,"DG1010902":1,"DG1010903":1,"DG1011520":1,"DG1011521":1,"DG1011522":1,"DG1011523":1,"DG1011524":1,"DG1011620":1,"DG1011621":1,"DG1011622":1,"DG1011623":1,"DG1011624":1,"DG1011625":1,"DG1011626":1,"DG1011627":1,"DG1011629":1,"DG1011920":1,"DG1011921":1,"DG1011922":1,"DG1011923":1,"DG1011924":1,"DG1011925":1,"DG1011926":1,"DG1011927":1,"DG1011928":1,"DG1011930":1,"DG1011931":1,"DG1012220":1,"DG1012221":1,"DG1012223":1,"DG1012320":1,"DG1012321":1,"DG1012327":1,"DG1012420":1,"DG1012421":1,"DG1012423":1,"DG1012424":1,"DG1012425":1,"DG1012426":1,"DG1012427":1,"DG1012430":1,"DG1012720":1,"DG1012721":1,"DG1012722":1,"DG1012723":1,"DG1012724":1,"DG1012821":1,"DG1012822":1,"DG1012823":1,"DG1012901":1,"DG1012902":1,"DG1012905":1,"DG1012907":1,"DG1012908":1,"DG1012915":1,"DG1012917":1,"DG1012921":1,"DG1012922":1,"DG1012923":1,"DG1012928":1,"DG1012929":1,"DG1013001":1,"DG1013002":1,"DG1013004":1,"DG1013007":1,"DG1013015":1,"DG1013016":1,"DG1013017":1,"DG1013023":1,"DG1013220":1,"DG1013221":1,"DG1013222":1,"DG1013223":1,"DG1013320":1,"DG1013321":1,"DG1013322":1,"DG1013323":1,"DG1013325":1,"DG1013503":1,"DG1013504":1,"DG1013505":1,"DG1013596":1,"DG1013701":1,"DG1013702":1,"DG1013703":1,"DG1013704":1,"DG1013707":1,"DG1013708":1,"DG1022120":1,"DG1022121":1,"DG1022123":1,"DG1022124":1,"DG1022125":1,"DG1022320":1,"DG1022321":1,"DG1022322":1,"DG1022323":1,"DG1026020":1,"DG1026021":1,"DG1026022":1,"DG1026023":1,"DG1026024":1,"DG1026025":1,"DG1026026":1,"DG1026027":1,"DG1026028":1,"DG1026029":1,"DG1026030":1,"DG1026099":1,"DG1031220":1,"DG1031221":1,"DG1056620":1,"DG1056621":1,"DG1056623":1,"DG1056624":1,"DG1056625":1,"DG1056626":1,"DG1056696":1,"DG1099103":1,"DG1099111":1,"DG1099204":1,"DG1099205":1,"DG1099206":1,"DG1099207":1,"DG1099303":1,"DG1099502":1,"DG1099506":1
+        };
+
+        $(document).ready(function(){
+
+            color = d3.scale.linear()
+                    .domain([ -5,0, 5])
+                    .range(["limegreen", "lightgray", "red"]);
+
+            map = new L.Map('mapcanvas',{
+                fullscreenControl: true
+                //timeDimension: true,
+                //timeDimensionControl: true
+            });
+
+            var legend = L.control({position: 'topleft'});
+            legend.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info legend'),
+                        grades = [-5, -3, -1, 0, 1, 3, 5],
+                        labels = ['<strong> Energy Consumption </strong>'],
+                        from, to;
+
+                for (var i = 0; i < grades.length; i++) {
+                    from = grades [i];
+                    to = grades[i+1]-1;
+
+                    labels.push(
+                            '<i style="background:' + color(from) + '"></i> ' +
+                            from + (i+1>grades.length-1 ? '+':' '));// ' &ndash; ' + to ));
+                }
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+            legend.addTo(map);
+            var legend2 = L.control({position: 'topleft'});
+            legend2.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info legend'),
+                        grades = [1,2, 4],
+                        labels = ['<strong> Precipitation </strong>'],
+                        from,  margin, lastRadius =0;
+                var symbolsContainer = L.DomUtil.create('div', 'symbolsContainer');
+                var legendContainer = L.DomUtil.create('div', 'temporal-legend');
+                $(legendContainer).append('<h2 id="legendTitle">Precipitation</h2>');
+                var radius = d3.scale.pow()
+                        .domain([0, 16])
+                        .range([0, 1000]);
+                for (var i = 0; i < grades.length; i++) {
+                    var legendCircle = L.DomUtil.create('div', 'legendCircle');
+                    from = grades [i];
+                   // to = grades[i+1]-1;
+                    var k = 7;
+                    margin =  - radius(from)/k - lastRadius/k - 2/k;
+                    $(legendCircle).attr('style', 'width: ' + radius(from)/(k/2) +
+                            'px; height: ' + radius(from)/(k/2) +
+                            'px; margin-left: ' + margin + 'px' );
+                    $(legendCircle).append('<span class="legendValue">'+from+'</span>');
+
+                    $(symbolsContainer).append(legendCircle);
+
+                    lastRadius = radius(from);
+
+                }
+                //div.innerHTML = labels.join('<br>');
+                $(legendContainer).append(symbolsContainer);
+                return legendContainer;
+            };
+            //legend2.addTo(map);
+
+            info = L.control();
+
+            info.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+                this.update();
+                return this._div;
+            };
+
+// method that we will use to update the control based on feature properties passed
+            info.update = function (props) {
+                console.log(props);
+                this._div.innerHTML = '<h4>Trento Lineset</h4>' +  (props ?
+                        '<b>' + props.LINESET+
+                        '<br><b> Precipitation: ' + props.avgprec+
+                        '<br><b> Energy Consumption: ' + props.avgcons
+                                : 'Hover over a lineset');
+            };
+
+            info.addTo(map);
+
+           // var osmUrl = 'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png';
+            //var osmUrl = 'http://{s}.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png';
+            //var osmUrl ='http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png';
+            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+            var osm = new L.TileLayer(osmUrl, {attribution: osmAttrib});
+           /* var FreeMapSK = L.tileLayer('http://{s}.freemap.sk/T/{z}/{x}/{y}.jpeg', {
+                minZoom: 8,
+                maxZoom: 16,
+                //subdomains: ["t1", "t2", "t3", "t4"],
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, vizualization CC-By-SA 2.0 <a href="http://freemap.sk">Freemap.sk</a>'
+            });
+            */
+            var CartoDB_Positron = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            });
+            var OpenMapSurfer_AdminBounds = L.tileLayer('http://openmapsurfer.uni-hd.de/tiles/adminb/x={x}&y={y}&z={z}', {
+                maxZoom: 19,
+                attribution: 'Imagery from <a href="http://giscience.uni-hd.de/">GIScience Research Group @ University of Heidelberg</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            /*
+            var Hydda_RoadsAndLabels = L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/roads_and_labels/{z}/{x}/{y}.png', {
+                attribution: 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+            */
+            var Stamen_TonerLines = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lines/{z}/{x}/{y}.png', {
+                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                subdomains: 'abcd',
+                minZoom: 0,
+                maxZoom: 20,
+                ext: 'png'
+            });
+
+            // start the map in trentino
+            map.setView(new L.LatLng(46.2,11),10);
+            //map.addLayer(osm);
+            //map.addLayer(FreeMapSK);
+            map.addLayer(CartoDB_Positron);
+           // map.addLayer(OpenMapSurfer_AdminBounds);
+           // map.addLayer(Hydda_RoadsAndLabels);
+           map.addLayer(Stamen_TonerLines);
+
+            //county.json is a topojson file
+/*
+            var myStyle = {
+                "color": "#003399",
+                "weight": 1,
+                "opacity": 0.8,
+                "fill-opacity":0.8
+            };
+*/
+            //var dat1 = [];
+            //var dates;
+            //to merge csv data to json
+            //topojson -o final.json -e trentino-sololerigheimportanti.csv --id-property=id_cell,cellId -p=cellId=cellId,LINESET,avgcons,avgprec -- trentino-grid.json
+            //"mid_lat","mid_long","p3_lat","p3_long","p2_lat","p0_long","p1_long","id_cell","p1_lat","p2_long","p0_lat","LINESET","NR_UBICAZIONI","STRINGTOBIGDECIMAL","avgprec","avgcons"
+            //d3.csv('trentino-sololerigheimportanti.csv',function(d){
+
+            readCsv();
+        });
+        function highlightFeature(e) {
+            var layer = e.target;
+
+            layer.setStyle({
+                weight: 1,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+
+            //if (!L.Browser.ie && !L.Browser.opera) {
+            //    layer.bringToFront();
+            //}
+            console.log(layer);
+            info.update(layer._options.statics);
+        }
+        function resetHighlight(e) {
+            console.log(e);
+            e.target.setStyle( {
+                    // "color": "green",
+                    "color": color(e.target._options.statics.avgcons/* + Math.random() * 10*/),
+                    "weight": "2",
+                    //"stroke": "black",
+                    "opacity": "1",
+                    "fillOpacity": "0.8"
+            }
+                );
+            info.update();
+        }
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight
+            });
+        }
+        function filterandplotdata(data){
+            geoJsonObject = topojson.feature(data, data.objects.trentinogrid);
+           // geoJsonObject = geoJson.feature(data, data.trentinogrid);
+            console.log("nested",nested);
+            dates = d3.set();
+            nested.forEach(function (d){
+                dates.add(d.key);
+            });
+
+            drawOnlyALineset(data,nested);
+            //};
+            //seleziono solo le celle appartenenti ad un LINESET
+            //selection = {
+            //    type: "FeatureCollection",
+            //    features: geoJsonObject.features.filter(function(d) {
+            //        return d.properties.LINESET in selected;
+            //    })};
+            //questo stampa solo le celle che sono in una line set
+            // L.geoJson(selection,{
+            //    style:{
+            //          "color": "red",
+            //         "weight":"1",
+            //         //"stroke": "black",
+            //         "fill-opacity": 0.6
+            //     }
+            // }).addTo(map);
+
+            //questo stampa tutta la grid
+            // L.geoJson(geoJsonObject,{
+            //    style:myStyle
+            //}).addTo(map);
+        }
+
+
+        function drawOnlyALineset(data,nested) {
+            //layeravgprecyrcle.clearLayers();
+            //ayerlinesetcells.clearLayers();
+            //var gprecipitatio = L.layerGroup([layeravgprecyrcle]);
+            //var glineset = L.layerGroup([layerlinesetcells]);
+
+            console.log(day + "" + slideValue($("#slider").slider("value")));
+            var filtered = [];
+            var x = document.getElementById("linesetcheck");
+            filtered = nested.filter(function (d) {
+                return d.key === day + "" + slideValue($("#slider").slider("value"));
+            });
+            console.log(filtered[0]);
+            var max_precipitation = d3.max(filtered[0].values, function (ddd) {
+                return ddd.values.avgprec;
+            });
+            console.log(max_precipitation);
+            var linesetcells = [];
+            var cyrclecells = [];
+            if (x.checked == true) {
+
+                //console.log($("#sliderlineset").slider("value"));
+                console.log(linesets[$("#sliderlineset").slider("value")]);
+                console.log(filtered[0].values);
+
+                var ls =$.grep(filtered[0].values,function (ddd){
+                    return ddd.key === linesets[$("#sliderlineset").slider("value")];
+                });
+                console.log(ls);
+                var dd = ls[0];
+                linesetcells.push(drawLinesetPoligon(data,dd));
+
+                for (var i = 0; i < linesetcells.length; i++) {
+                    linesetcells[i].addTo(map);
+                }
+                linesetcells = [];
+                linesetcells.push(drawPrecipitationCyrcle(dd,max_precipitation));
+                for (var i = 0; i < linesetcells.length; i++) {
+                    if($("#sliderprecipitation").slider("values",0)<dd.values.avgprec && dd.values.avgprec<=$("#sliderprecipitation").slider("values",1)){
+                        linesetcells[i].addTo(map);
+                    }
+                }
+                linesetcells = [];
+            } else {
+                filtered[0].values.forEach(function (dd) {
+                    if($("#sliderconsume").slider("values",0)<=dd.values.avgcons && dd.values.avgcons<=$("#sliderconsume").slider("values",1)) {
+                        linesetcells.push(drawLinesetPoligon(data, dd));
+                    }
+                    //console.log(linesetcells);
+                    if($("#sliderprecipitation").slider("values",0)<dd.values.avgprec && dd.values.avgprec<=$("#sliderprecipitation").slider("values",1)){
+                        cyrclecells.push(drawPrecipitationCyrcle(dd,max_precipitation));
+                    }
+                });
+                for (var i = 0; i < linesetcells.length; i++) {
+                    linesetcells[i].addTo(map);
+                }
+                linesetcells = [];
+                for (var j = 0; j < cyrclecells.length; j++) {
+                    cyrclecells[j].addTo(map);
+                }
+                cyrclecells = [];
+            };
+
+/*
+            var gprecipitatio = L.layerGroup([layeravgprecyrcle]);
+            var glineset = L.layerGroup([layerlinesetcells]);
+
+            var overlayMaps = {
+                "precipitation": gprecipitatio,
+                "lineset":glineset
+
+            };
+            L.control.layers(overlayMaps).addTo(map);
+            */
+        };
+        var highlightStyle = {
+            color: '#2262CC',
+            weight: 3,
+            opacity: 0.6,
+            fillOpacity: 0.65,
+            fillColor: '#2262CC'
+        };
+        function drawPrecipitationCyrcle(dd,max_precipitation){
+            var radius = d3.scale.pow().exponent(1)
+                    .domain([0, max_precipitation])
+                    .range([0,1000])
+                    ;
+            //questi sono i cerchi
+            layeravgprecyrcle = L.circle(new L.LatLng(dd.values.x, dd.values.y), radius(dd.values.avgprec), {
+                "color": 'blue',
+                "fillColor": '#bbf',
+                "weight": "2",
+                "opacity":"1",
+                "fillOpacity": "0.8"
+            });
+            //layeravgprecyrcle.addTo(map);
+            layeravgprecyrcle.bindPopup("Lineset "+dd.key+"<br>Precipitation "+dd.values.avgprec+"<br>");
+            return layeravgprecyrcle;
+        }
+
+        function drawLinesetPoligon(data,dd){
+            //provo a mergiare le lineset
+            var linesetcells = topojson.merge(
+                    data,
+                    data.objects.trentinogrid.geometries.filter(
+                            function (d) {
+                                //console.log(d.properties.cellId.toString());
+                               if ($.inArray(d.id.toString(), dd.values.cells) < 0) {//nel caso di final.json trasformato con il tool topojson
+                                //if ($.inArray(d.properties.cellId.toString(), dd.values.cells) < 0) { //nel caso del trentino-grid.json
+                                    return false;
+                                } else {
+                                    return true;
+                                }
+                            })
+            );
+           // return linesetcells;
+            //qui inizio a creare lo slider per selezionare i dati da vedere sulla mappa
+            layerlinesetcells = L.geoJson(linesetcells,
+                    {
+                        style: {
+                        // "color": "green",
+                        "color": color(dd.values.avgcons/* + Math.random() * 10*/),
+                        "weight": "2",
+                        //"stroke": "black",
+                        "opacity": "1",
+                        "fillOpacity": "0.8"
+
+                        },
+
+                        onEachFeature: onEachFeature,
+                        statics:{
+                            "LINESET":dd.key,
+                            "avgprec":dd.values.avgprec,
+                            "avgcons":dd.values.avgcons
+                        }
+
+            });
+            layerlinesetcells.bindPopup("Lineset "+dd.key+"<br>Power consume "+dd.values.avgcons+"<br>Precipitation "+dd.values.avgprec+"<br>");
+            //console.log(layerlinesetcells);
+            //layerlinesetcells.addTo(map);
+            return layerlinesetcells;
+        }
+
+        function aggrTime(leaves) {
+            var ubicazioni = d3.sum(leaves, function(d) {
+                return d.NR_UBICAZIONI;
+            });
+
+            var coords = leaves.map(function(d) {
+                return [+d.mid_long, +d.mid_lat];
+            });
+
+            var center_x = d3.mean(coords, function(d) {
+                return d[0];
+            });
+
+            var center_y = d3.mean(coords, function(d) {
+                return d[1];
+            });
+
+            var avgcons = d3.mean(leaves,function (d){
+                return d.avgcons;
+            });
+
+            var avgprec = d3.mean(leaves,function (d){
+                return d.avgprec;
+            });
+
+            var cells = d3.set();//unique teams set
+            //console.log(leaves[0].id);
+            leaves.forEach(function(d) {
+                cells.add(d.id_cell);
+            });
+
+            return {
+                //'lineset' : lineset,
+                'ubicazioni' : ubicazioni,
+                'x' : center_x,
+                'y' : center_y,
+                'avgprec' : avgprec,
+                'avgcons' : avgcons,
+                'cells' : cells.values()
+            };
+        }
+
+        function styleLineset(feature) {
+            return {
+                fillColor: getColor(feature.properties.density),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        }
+
+        function getTime(hours, minutes) {
+            var time = null;
+            minutes = minutes + "";
+            hours = hours + "";
+            if (hours.length == 1) {
+                hours = "0" + hours;
+            }
+            if (minutes.length == 1) {
+                minutes = "0" + minutes;
+            }
+            return hours + minutes ;
+        }
+        function slideValue(value){
+            var val0 =value,
+                    minutes0 = parseInt(val0% 60, 10),
+                    hours0 = parseInt(val0 / 60 % 24, 10);
+            return getTime(hours0, minutes0);
+        }
+
+        $(function() {
+            $("#slider").slider({
+                value:600,
+                min:0,
+                max:1440,
+                step: 10,
+                slide: function( event, ui ) {
+
+                    $("#time").val(slideValue(ui.value));
+                    //$("#time").text(day+""+slideValue(ui.value));
+                    //qui rimuovo i valori vecchi
+
+                    // testLayer.clearLayers();
+                    d3.selectAll("g").remove();
+                    //qui dovrei richiamare la cosa per aggiornare la mappa
+                    $.getJSON(finaljson, filterandplotdata);
+
+                }
+            }).each(function() {
+                // Add labels to slider whose values
+                // are specified by min, max
+                // Get the options for this slider (specified above)
+                var opt = $(this).data().uiSlider.options;
+
+                // Get the number of possible values
+                var vals = opt.max - opt.min;
+
+                // Position the labels
+                for (var i = 0; i <= vals; i=i+10) {
+                    // Create a new element and position it with percentages
+                    if(i%60==0){
+                        var el = $('<label>' + slideValue(i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
+                        $("#slider").append(el);
+                    }
+                    //else{
+                      //  var el = $('<label> - </label>').css('left', (i/vals*100) + '%');
+                        //$("#slider").append(el);
+                    //}
+                    // Add the element inside #slider
+                }});
+            //aggiuge la prima volta il numero, vuol dire scrive il valore di inizio
+            $( "#time" ).val(slideValue($("#slider").slider("value")));
+        });
+
+        var day = "20131102";
+        $(function() {
+            $("#sliderday").slider({
+                value:20131102,
+                min:20131101,
+                max:20131130,
+                step: 1,
+                slide: function( event, ui ) {
+                    $("#day").val(ui.value);
+                    day=ui.value;
+                    d3.selectAll("g").remove();
+                    readCsv();
+                   // d3.readyWait();
+                }
+            }).each(function() {
+                // Add labels to slider whose values
+                // are specified by min, max
+                // Get the options for this slider (specified above)
+                var opt = $(this).data().uiSlider.options;
+                // Get the number of possible values
+                var vals = opt.max - opt.min;
+                // Position the labels
+                for (var i = 0; i <= vals; i=i+1) {
+                    // Create a new element and position it with percentages
+                    var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
+                    // Add the element inside #slider
+                    $("#sliderday").append(el);
+                }});
+            //aggiunge solo il valore di inzio
+            $( "#day" ).val($("#sliderday").slider("value"));
+        });
+
+        function readCsv(){
+            nested=[];
+            //qui dovrei richiamare la cosa per aggiornare la mappa
+            d3.csv(day+".csv",function(d){
+                //formatto la data come piace a noi
+                //d.STRINGTOBIGDECIMALTIME = format.parse(d.STRINGTOBIGDECIMALTIME);
+                return d;
+            }, function(data2) {
+                //var featuresgrid= geoJsonObject.features;
+                //annida i dati in un json strutturato
+                nested = d3.nest()
+                        .key(function (d) {
+                            return d.STRINGTOBIGDECIMAL;
+                        })
+                        .key(function (d) {
+                            return d.LINESET;
+                        })
+                        .rollup(aggrTime)
+                        .entries(data2);
+                $.getJSON(finaljson, filterandplotdata);
+            });
+        }
+        var lineset="DG1000011";
+        $(function() {
+            $("#sliderlineset").slider({
+                value:0,
+                min:0,
+                max:199,
+                step: 1,
+                slide: function( event, ui ) {
+                    $("#lineset").val(linesets[ui.value]);
+                    lineset=linesets[ui.value];
+                    d3.selectAll("g").remove();
+                    //qui dovrei richiamare la cosa per aggiornare la mappa
+                   $.getJSON(finaljson, filterandplotdata);
+                }
+            }).each(function() {
+                // Add labels to slider whose values
+                // are specified by min, max
+                // Get the options for this slider (specified above)
+                var opt = $(this).data().uiSlider.options;
+                // Get the number of possible values
+                var vals = opt.max - opt.min;
+                // Position the labels
+                for (var i = 0; i <= vals; i=i+10) {
+                    // Create a new element and position it with percentages
+                    var el = $('<label>' + linesets[(i + opt.min)] + '</label>').css('left', (i/vals*100) + '%');
+                    // Add the element inside #slider
+                    $("#sliderlineset").append(el);
+                }});
+            $( "#lineset" ).val(linesets[$("#sliderlineset").slider("value")]);
+
+        });
+       // var lineset="DG1000011";
+        $(function() {
+            $("#sliderprecipitation").slider({
+                range:true,
+                //value:0,
+                min:0,
+                max:16,
+                //steps: [0,100],
+                values:[0,16],
+                slide: function( event, ui ) {
+                    $("#precipitation").val(ui.values[0]+" - "+ui.values[1]);
+                    //lineset=linesets[ui.value];
+                    d3.selectAll("g").remove();
+                    //qui dovrei richiamare la cosa per aggiornare la mappa
+                    $.getJSON(finaljson, filterandplotdata);
+                }
+            }).each(function() {
+                // Add labels to slider whose values
+                // are specified by min, max
+                // Get the options for this slider (specified above)
+                var opt = $(this).data().uiSlider.options;
+                // Get the number of possible values
+                var vals = opt.max - opt.min;
+                // Position the labels
+                for (var i = 0; i <= vals; i=i+1) {
+                    // Create a new element and position it with percentages
+                    var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
+                    // Add the element inside #slider
+                    $("#sliderprecipitation").append(el);
+                }});
+            $( "#precipitation" ).val($("#sliderprecipitation").slider("values",0)+" - "+$("#sliderprecipitation").slider("values",1));
+        });
+        $(function() {
+            $("#sliderconsume").slider({
+                range:true,
+                //value:0,
+                min:-6,
+                max:6,
+                steps: 1,
+                values:[-6,6],
+                slide: function( event, ui ) {
+                    $("#consume").val(ui.values[0]+" - "+ui.values[1]);
+                    //lineset=linesets[ui.value];
+                    d3.selectAll("g").remove();
+                    //qui dovrei richiamare la cosa per aggiornare la mappa
+                    $.getJSON(finaljson, filterandplotdata);
+                }
+            }).each(function() {
+                // Add labels to slider whose values
+                // are specified by min, max
+                // Get the options for this slider (specified above)
+                var opt = $(this).data().uiSlider.options;
+                // Get the number of possible values
+                var vals = opt.max - opt.min;
+                // Position the labels
+                for (var i = 0; i <= vals; i=i+1) {
+                    // Create a new element and position it with percentages
+                    var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
+                    // Add the element inside #slider
+                    $("#sliderconsume").append(el);
+                }});
+            $( "#consume" ).val($("#sliderconsume").slider("values",0)+" - "+$("#sliderconsume").slider("values",1));
+        });
+        //end document ready
+    </script>
+</head>
+
+<body>
+<div id="header">
+    <h1>Trento Energy Consumption vs Precipitation</h1>
+</div>
+<!--<nav>
+    option one<br>
+    option two<br>
+    option three<br>
+</nav>-->
+
+<div id="section">
+    <p>
+    <h3>Select hours and minutes</h3>
+    <label for="time">Time (10 minutes increments)<br> (HHMM):</label>
+    <input type="text" id="time" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <p>
+    <div id="slider"></div>
+    </p>
+
+    <br>
+
+    <div class="line-separator"></div>
+
+    <p>
+    <h3>Select Days</h3>
+    <label for="day">Day (1 day increment) <br>(yyyymmdd):</label>
+    <input type="text" id="day" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <p>
+    <div id="sliderday"></div>
+    </p>
+
+    <br>
+    <br>
+    <div class="line-separator"></div>
+    <p>
+    <h3>Select Lineset</h3>
+
+    <td><input type="checkbox" id="linesetcheck" name="linesetr" value="true">Cerchiamo su un solo lineset</td>
+    <br>
+    <label for="lineset">Lineset (1 lineset incr.) <br>(DGXXXXXXX):</label>
+    <input type="text" id="lineset" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <p>
+    <div id="sliderlineset"></div>
+    </p>
+
+    <br>
+    <br>
+    <br>
+    <div class="line-separator"></div>
+    <p>
+    <h3>Select Precipitation Range Value</h3>
+
+
+    <br>
+    <label for="precipitation">Precipitation (1 unit incr.) <br>(XX.XXX):</label>
+    <input type="text" id="precipitation" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <p>
+    <div id="sliderprecipitation"></div>
+    </p>
+    <br>
+    <div class="line-separator"></div>
+    <p>
+    <h3>Select Energy Consumption Range Value</h3>
+
+
+    <br>
+    <label for="consume">Power Consume (1 unit incr.) <br>(XX.XXX):</label>
+    <input type="text" id="consume" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <p>
+    <div id="sliderconsume"></div>
+    </p>
+
+</div>
+
+
+<div id="aside">
+    <div id="mapcanvas"></div>
+
+</div>
+<div id="footer">
+   Chuck Norris Copyright
+</div>
+
+</body>
+
+</html>
