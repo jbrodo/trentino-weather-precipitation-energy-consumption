@@ -11,4 +11,4 @@ I made a simple data visualization page in D3.js on the map of the trentino
  python -m http.server
 ```
 
-Open the browser at [|http://localhost:8000/] .
+Open the browser at http://localhost:8000/ .
