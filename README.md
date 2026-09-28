@@ -25,7 +25,7 @@ Apri [http://localhost:8000/](http://localhost:8000/).
 ## Controlli pre-commit
 
 Gli hook verificano JSON/YAML, HTML della dashboard, sintassi e alcune regole
-di sicurezza JavaScript, oltre ai marcatori di conflitto e alla formattazione
+statiche JavaScript, oltre ai marcatori di conflitto e alla formattazione
 di base della documentazione. Richiedono Python 3 e Node.js/npm; installa le
 dipendenze e gli hook con:
 
