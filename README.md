@@ -24,12 +24,14 @@ Apri [http://localhost:8000/](http://localhost:8000/).
 
 ## Controlli pre-commit
 
-Gli hook verificano la sintassi dei JSON, i marcatori di conflitto e la
-formattazione di base della documentazione. Richiedono Python 3 e si installano
-con:
+Gli hook verificano JSON/YAML, HTML della dashboard, sintassi e alcune regole
+di sicurezza JavaScript, oltre ai marcatori di conflitto e alla formattazione
+di base della documentazione. Richiedono Python 3 e Node.js/npm; installa le
+dipendenze e gli hook con:
 
-```bash
+```powershell
 py -m pip install pre-commit
+npm ci
 py -m pre_commit install
 ```
 
@@ -39,7 +41,9 @@ Per eseguirli manualmente su tutti i file tracciati:
 py -m pre_commit run --all-files
 ```
 
-La configurazione usa `pre-commit-hooks` `v6.0.0`.
+Il controllo dei tipi è escluso: il JavaScript è inline e privo di annotazioni
+o dichiarazioni di tipo per le librerie globali. La configurazione usa
+`pre-commit-hooks` `v6.0.0`.
 
 ## Dati
 

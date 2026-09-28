@@ -1,0 +1,14 @@
+{
+  "name": "trentino-weather-precipitation-energy-consumption",
+  "private": true,
+  "scripts": {
+    "check:html": "html-validate index.html",
+    "lint:js": "eslint index.html",
+    "check": "npm run check:html && npm run lint:js"
+  },
+  "devDependencies": {
+    "eslint": "10.11.0",
+    "eslint-plugin-html": "8.2.1",
+    "html-validate": "11.16.1"
+  }
+}

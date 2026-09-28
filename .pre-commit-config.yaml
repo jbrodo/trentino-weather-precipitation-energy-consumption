@@ -4,7 +4,22 @@ repos:
     hooks:
       - id: check-json
       - id: check-merge-conflict
+      - id: check-yaml
       - id: trailing-whitespace
         files: ^(README\.md|llms\.txt|wiki/.*\.md|\.github/.*\.md|\.pre-commit-config\.yaml)$
       - id: end-of-file-fixer
         files: ^(README\.md|llms\.txt|wiki/.*\.md|\.github/.*\.md|\.pre-commit-config\.yaml)$
+  - repo: local
+    hooks:
+      - id: check-html
+        name: Validate dashboard HTML
+        entry: npm run check:html
+        language: system
+        files: ^index\.html$
+        pass_filenames: false
+      - id: lint-inline-js
+        name: Lint inline dashboard JavaScript
+        entry: npm run lint:js
+        language: system
+        files: ^index\.html$
+        pass_filenames: false

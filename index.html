@@ -1,17 +1,17 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
 
 <head>
     <title>Trentino | Energia e precipitazioni</title>
-    <meta charset="utf-8" /><meta name="viewport" content="width=device-width">
-
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!--<script type="text/javascript" src="jquery-1.9.1.min.js"></script>-->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/smoothness/jquery-ui.css">
     <!--<script type="text/javascript" src="jquery-ui.js"></script>-->
-    <script type="text/javascript" src="https://code.jquery.com/ui/1.14.2/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!--<script type="text/javascript" src="SliderControl.js"></script>-->
     <!--<script type="text/javascript" src="leaflet.SliderControl.min.js"></script>-->
     <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -1902,28 +1902,28 @@
     <section class="control-group">
         <h3>Orario</h3>
         <div class="value-row"><label for="time">Ora selezionata</label><input class="value-output" type="text" id="time" readonly></div>
-        <div id="slider" aria-label="Seleziona l'orario, a intervalli di dieci minuti"></div>
+        <div id="slider" role="group" aria-label="Seleziona l'orario, a intervalli di dieci minuti"></div>
     </section>
     <section class="control-group">
         <h3>Giorno · novembre 2013</h3>
         <div class="value-row"><label for="day">Data selezionata</label><input class="value-output" type="text" id="day" readonly></div>
-        <div id="sliderday" aria-label="Seleziona il giorno"></div>
+        <div id="sliderday" role="group" aria-label="Seleziona il giorno"></div>
     </section>
     <section class="control-group">
         <h3>Lineset</h3>
         <label class="check-row"><input type="checkbox" id="linesetcheck" name="linesetr" value="true">Filtra un solo lineset</label>
         <div class="value-row"><label for="lineset">Codice selezionato</label><input class="value-output" type="text" id="lineset" readonly></div>
-        <div id="sliderlineset" aria-label="Seleziona un lineset"></div>
+        <div id="sliderlineset" role="group" aria-label="Seleziona un lineset"></div>
     </section>
     <section class="control-group">
         <h3>Intervallo precipitazioni</h3>
         <div class="value-row"><label for="precipitation">Intervallo selezionato</label><input class="value-output" type="text" id="precipitation" readonly></div>
-        <div id="sliderprecipitation" aria-label="Filtra per intervallo di precipitazioni"></div>
+        <div id="sliderprecipitation" role="group" aria-label="Filtra per intervallo di precipitazioni"></div>
     </section>
     <section class="control-group">
         <h3>Intervallo consumo energetico</h3>
         <div class="value-row"><label for="consume">Intervallo selezionato</label><input class="value-output" type="text" id="consume" readonly></div>
-        <div id="sliderconsume" aria-label="Filtra per intervallo di consumo energetico"></div>
+        <div id="sliderconsume" role="group" aria-label="Filtra per intervallo di consumo energetico"></div>
     </section>
 </aside>
 
@@ -1951,7 +1951,7 @@
             <p>Valori dell'orario selezionato, aggiornati con i filtri a sinistra. <span id="data-timestamp"></span></p>
         </header>
         <div class="table-toolbar">
-            <label for="lineset-search">Cerca lineset
+            <label>Cerca lineset
                 <input id="lineset-search" type="search" placeholder="Es. DG1000420" autocomplete="off">
             </label>
             <span id="table-count" aria-live="polite">0 lineset</span>
@@ -1970,11 +1970,11 @@
             <p id="trend-status" class="panel-note" aria-live="polite">I grafici mostrano le medie giornaliere dei valori disponibili.</p>
         </header>
         <div class="trend-grid">
-            <section class="trend-chart" aria-labelledby="trend-precipitation-title">
+            <section class="trend-chart" role="group" aria-labelledby="trend-precipitation-title">
                 <h3 id="trend-precipitation-title">Precipitazioni</h3>
                 <div id="trend-precipitation"></div>
             </section>
-            <section class="trend-chart" aria-labelledby="trend-consumption-title">
+            <section class="trend-chart" role="group" aria-labelledby="trend-consumption-title">
                 <h3 id="trend-consumption-title">Consumo energetico</h3>
                 <div id="trend-consumption"></div>
             </section>
@@ -1985,16 +1985,16 @@
                     <h3 id="hourly-title">Profilo per fascia oraria</h3>
                     <p>Medie orarie calcolate sui record validi del giorno selezionato. Le scale sono indipendenti; le barre non sono impilate.</p>
                 </div>
-                <label class="hourly-controls" for="hourly-day">Giorno
+                <label class="hourly-controls">Giorno
                     <input id="hourly-day" type="date" min="2013-11-01" max="2013-11-30" value="2013-11-02">
                 </label>
             </header>
             <div class="hourly-chart-grid">
-                <section class="hourly-chart" aria-labelledby="hourly-precipitation-title">
+                <section class="hourly-chart" role="group" aria-labelledby="hourly-precipitation-title">
                     <h4 id="hourly-precipitation-title">Precipitazioni</h4>
                     <div id="hourly-precipitation"></div>
                 </section>
-                <section class="hourly-chart" aria-labelledby="hourly-consumption-title">
+                <section class="hourly-chart" role="group" aria-labelledby="hourly-consumption-title">
                     <h4 id="hourly-consumption-title">Consumo energetico</h4>
                     <div id="hourly-consumption"></div>
                 </section>
