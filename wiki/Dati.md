@@ -5,7 +5,7 @@
 ## Ingressi
 
 - `final.json`: TopoJSON con `objects.trentinogrid.geometries` (6.574 geometrie al controllo), ID delle celle e archi necessari a `topojson.merge`.
-- `Data_Vis_Code_Files_CSV.tar.gz`: contiene `20131101.csv` fino a `20131130.csv`. I CSV non sono tracciati (`*.csv` in `.gitignore`); il browser li richiede nella root come `YYYYMMDD.csv`.
+- `Data_Vis_Code_Files_CSV.tar.gz`: contiene `20131101.csv` fino a `20131130.csv`. I CSV non sono tracciati (`*.csv` in `.gitignore`); il browser li richiede in `csv/` come `YYYYMMDD.csv`.
 - Colonne verificate nel campione del 2 novembre: `mid_lat`, `mid_long`, `id_cell`, `LINESET`, `NR_UBICAZIONI`, `STRINGTOBIGDECIMAL`, `avgprec`, `avgcons`.
 
 ## Trasformazione usata dalla pagina

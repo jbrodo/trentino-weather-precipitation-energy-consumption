@@ -1,13 +1,13 @@
 <html>
 
 <head>
-    <title>HTML5</title>
+    <title>Trentino | Energia e precipitazioni</title>
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <!--<script type="text/javascript" src="jquery-1.9.1.min.js"></script>-->
-    <link rel="stylesheet" href="jquery-ui.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
     <!--<script type="text/javascript" src="jquery-ui.js"></script>-->
     <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <!-- cdn.leafletjs.com is no longer online: JS local (0.7.3), CSS from unpkg with the same version -->
@@ -124,16 +124,55 @@
             font-size: 8px;
         }
         .info {
-            padding: 6px 8px;
-            font: 14px/16px Arial, Helvetica, sans-serif;
-            background: white;
-            background: rgba(255,255,255,0.8);
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            border-radius: 5px;
+            box-sizing: border-box;
+            width: 260px;
+            max-width: calc(100vw - 48px);
+            padding: 12px 14px;
+            font: 13px/1.4 "Segoe UI Variable", "Aptos", "Helvetica Neue", sans-serif;
+            background: rgba(255,255,255,0.96);
+            box-shadow: 0 8px 24px rgba(23,58,52,0.16);
+            border-radius: 4px;
         }
-        .info h4 {
-            margin: 0 0 5px;
-            color: #777;
+        .data-title {
+            display: block;
+            color: var(--ink);
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .data-values {
+            display: grid;
+            gap: 8px;
+            margin: 12px 0 0;
+        }
+        .data-value {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 14px;
+            padding-top: 8px;
+            border-top: 1px solid var(--line);
+        }
+        .data-value dt {
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .data-value dd {
+            margin: 0;
+            color: var(--ink);
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 650;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+        .data-precipitation dt {
+            color: #28658f;
+        }
+        .info-empty {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
         }
         .legend {
             line-height: 18px;
@@ -186,6 +225,412 @@
         #mapcanvas{
             height: 100%;
         }
+
+        :root {
+            --ink: #173a34;
+            --muted: #60716d;
+            --accent: #d45e3f;
+            --line: #dce5e0;
+            --panel: #f5f8f6;
+        }
+        body {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            grid-template-rows: 110px minmax(0, 1fr);
+            overflow: hidden;
+            color: #24332f;
+            background: var(--panel);
+            font-family: "Segoe UI Variable", "Aptos", "Helvetica Neue", sans-serif;
+            font-size: 13px;
+        }
+        #header {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 10px 24px;
+            border-top: 3px solid var(--accent);
+            background: var(--ink);
+            text-align: left;
+        }
+        .view-tabs {
+            display: flex;
+            gap: 22px;
+            margin-top: 10px;
+        }
+        .view-tab {
+            padding: 4px 0 6px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #c7d7d0;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .view-tab[aria-selected="true"] {
+            border-bottom-color: #e48365;
+            color: #fff;
+            font-weight: 700;
+        }
+        .view-tab:focus-visible {
+            outline: 2px solid #e48365;
+            outline-offset: 3px;
+        }
+        #header h1 {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 650;
+            line-height: 1.2;
+        }
+        #header .subtitle {
+            margin: 4px 0 0;
+            color: #c7d7d0;
+            font-size: 11px;
+        }
+        #section {
+            grid-column: 1;
+            grid-row: 2;
+            box-sizing: border-box;
+            width: auto;
+            min-width: 0;
+            float: none;
+            padding: 8px 20px 24px;
+            overflow-y: auto;
+            background: #fff;
+            border-right: 1px solid var(--line);
+            line-height: 1.45;
+        }
+        .control-group {
+            padding: 14px 0 18px;
+        }
+        .control-group + .control-group {
+            border-top: 1px solid var(--line);
+        }
+        .control-group h3 {
+            margin: 0 0 12px;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 650;
+        }
+        .value-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .value-output {
+            width: auto;
+            min-width: 54px;
+            max-width: 100%;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            font: inherit;
+            font-weight: 700;
+            text-align: right;
+        }
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 12px;
+            color: #334740;
+            cursor: pointer;
+        }
+        .check-row input {
+            accent-color: var(--ink);
+        }
+        #aside {
+            grid-column: 2;
+            grid-row: 2;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+        .view-panel {
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+        }
+        #map-view {
+            display: block;
+        }
+        #data-view, #trend-view {
+            display: none;
+            box-sizing: border-box;
+            overflow: auto;
+            padding: 24px clamp(18px, 4vw, 52px);
+        }
+        body.view-data #map-view, body.view-trend #map-view,
+        body.view-map #data-view, body.view-trend #data-view,
+        body.view-map #trend-view, body.view-data #trend-view {
+            display: none;
+        }
+        body.view-data #data-view, body.view-trend #trend-view {
+            display: block;
+        }
+        body.view-trend #section {
+            display: none;
+        }
+        body.view-trend #aside {
+            grid-column: 1 / -1;
+        }
+        .panel-heading {
+            margin: 0 0 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+        .panel-heading h2 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 20px;
+            font-weight: 650;
+        }
+        .panel-heading p, .panel-note {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .table-toolbar label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+        }
+        #lineset-search {
+            box-sizing: border-box;
+            width: min(260px, 55vw);
+            padding: 8px 10px;
+            border: 1px solid #cbd8d1;
+            border-radius: 3px;
+            color: #24332f;
+            font: inherit;
+        }
+        #lineset-search:focus {
+            border-color: var(--ink);
+            outline: 2px solid rgba(23, 58, 52, .15);
+        }
+        #table-count {
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .table-scroll {
+            max-height: calc(100% - 150px);
+            overflow: auto;
+            border-top: 2px solid var(--ink);
+        }
+        #data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-variant-numeric: tabular-nums;
+            text-align: left;
+        }
+        #data-table th, #data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        #data-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f2f6f3;
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 700;
+        }
+        #data-table td:not(:first-child), #data-table th:not(:first-child) {
+            text-align: right;
+        }
+        #data-table tbody tr:hover {
+            background: #f5f8f6;
+        }
+        #data-empty {
+            padding: 22px 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .trend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 32px;
+        }
+        .trend-chart {
+            min-width: 0;
+            padding-top: 14px;
+            border-top: 3px solid var(--line);
+        }
+        .trend-chart:first-child {
+            border-top-color: #4e93a0;
+        }
+        .trend-chart:last-child {
+            border-top-color: var(--accent);
+        }
+        .trend-chart h3 {
+            margin: 0 0 8px;
+            color: var(--ink);
+            font-size: 15px;
+        }
+        .trend-chart svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+        .trend-axis path, .trend-axis line {
+            fill: none;
+            stroke: #aebdb5;
+            shape-rendering: crispEdges;
+        }
+        .trend-axis text {
+            fill: #53635e;
+            font: 10px "Segoe UI Variable", "Aptos", sans-serif;
+        }
+        .trend-gridline line {
+            stroke: #e4ebe7;
+        }
+        .trend-line {
+            fill: none;
+            stroke-width: 2.5px;
+        }
+        .trend-point {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        .trend-empty {
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        #mapcanvas {
+            width: 100%;
+            height: 100%;
+        }
+        #footer {
+            display: none;
+        }
+        #slider, #sliderday, #sliderlineset, #sliderprecipitation, #sliderconsume {
+            position: relative;
+            height: 4px;
+            margin: 14px 8px 31px;
+            border: 0;
+            border-radius: 4px;
+            background: #d7e1dc;
+        }
+        .ui-slider .ui-slider-range {
+            border: 0;
+            background: #71967f;
+        }
+        .ui-slider .ui-slider-handle {
+            top: -7px;
+            width: 16px;
+            height: 16px;
+            margin-left: -8px;
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+            background: #fff;
+            cursor: grab;
+        }
+        .ui-slider .ui-slider-handle:focus {
+            outline: 3px solid rgba(212, 94, 63, .25);
+            outline-offset: 2px;
+        }
+        #slider label, #sliderday label, #sliderlineset label,
+        #sliderprecipitation label, #sliderconsume label {
+            position: absolute;
+            top: 14px;
+            width: auto;
+            min-width: 20px;
+            margin: 0;
+            color: #53635e;
+            font-size: 10px;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            writing-mode: horizontal-tb;
+            transform: translateX(-50%);
+        }
+        .info, .temporal-legend {
+            border: 1px solid rgba(23, 58, 52, .14);
+            border-radius: 4px;
+            color: #24332f;
+            font-family: "Segoe UI Variable", "Aptos", "Helvetica Neue", sans-serif;
+        }
+        .info {
+            border-left: 3px solid var(--accent);
+        }
+        .leaflet-popup-content .data-values {
+            min-width: 190px;
+        }
+        .leaflet-popup-content .data-title {
+            margin-bottom: 2px;
+        }
+        @media (max-width: 760px) {
+            body {
+                height: auto;
+                min-height: 100%;
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: auto auto minmax(360px, 55vh);
+                overflow: auto;
+            }
+            #header {
+                grid-column: 1;
+                padding: 12px 18px;
+            }
+            #header h1 {
+                font-size: 18px;
+            }
+            #section {
+                grid-column: 1;
+                grid-row: 2;
+                max-height: none;
+                padding: 4px 18px 14px;
+                overflow: visible;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+            #aside {
+                grid-column: 1;
+                grid-row: 3;
+                min-height: 55vh;
+            }
+            body.view-trend #aside {
+                grid-column: 1;
+                grid-row: 2;
+                min-height: calc(100vh - 110px);
+            }
+            body.view-trend #section {
+                display: none;
+            }
+            .trend-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 22px;
+            }
+            #data-view, #trend-view {
+                padding: 20px 18px;
+            }
+            .table-scroll {
+                max-height: 60vh;
+            }
+        }
     </style>
     <script>
         //format = d3.time.format("yyyymmddHHMM");
@@ -197,9 +642,23 @@
         var nested = [];
         var testLayer;
         var layeravgprecyrcle,layerlinesetcells;
+        var dataLayer;
+        var activeView = "map";
+        var dailyTrend = [];
+        var dailyTrendRequested = false;
+        var dailyTrendLoaded = false;
         var color;
         var finaljson = "final.json";//"final.json";//"trentino-grid.geojson";
         var info;
+        function linesetDetailsMarkup(lineset, precipitation, energy) {
+            return '<div class="data-details">' +
+                '<strong class="data-title">' + lineset + '</strong>' +
+                '<dl class="data-values">' +
+                '<div class="data-value data-precipitation"><dt>Precipitazioni</dt><dd>' + precipitation + '</dd></div>' +
+                '<div class="data-value"><dt>Consumo energetico</dt><dd>' + energy + '</dd></div>' +
+                '</dl>' +
+                '</div>';
+        }
         var linesets = [
             "DG1000011","DG1000023","DG1000420","DG1000421","DG1000422","DG1000423","DG1000425","DG1000496","DG1000620","DG1000621","DG1000622","DG1000624","DG1000625","DG1000820","DG1000821","DG1000823","DG1000824","DG1000825","DG1001120","DG1001121","DG1001123","DG1001124","DG1001125","DG1001126","DG1001127","DG1001196","DG1001320","DG1001321","DG1001322","DG1001323","DG1001324","DG1002020","DG1002021","DG1002022","DG1002023","DG1002024","DG1002025","DG1002026","DG1002120","DG1002121","DG1002122","DG1002124","DG1002125","DG1002126","DG1002128","DG1002520","DG1002521","DG1002522","DG1002525","DG1002527","DG1002528","DG1002529","DG1002531","DG1002532","DG1002533","DG1002534","DG1002535","DG1002536","DG1002537","DG1002538","DG1002539","DG1003101","DG1003103","DG1003116","DG1003117","DG1003119","DG1003301","DG1003302","DG1003315","DG1003316","DG1003317","DG1003318","DG1010901","DG1010902","DG1010903","DG1011520","DG1011521","DG1011522","DG1011523","DG1011524","DG1011620","DG1011621","DG1011622","DG1011623","DG1011624","DG1011625","DG1011626","DG1011627","DG1011629","DG1011920","DG1011921","DG1011922","DG1011923","DG1011924","DG1011925","DG1011926","DG1011927","DG1011928","DG1011930","DG1011931","DG1012220","DG1012221","DG1012223","DG1012320","DG1012321","DG1012327","DG1012420","DG1012421","DG1012423","DG1012424","DG1012425","DG1012426","DG1012427","DG1012430","DG1012720","DG1012721","DG1012722","DG1012723","DG1012724","DG1012821","DG1012822","DG1012823","DG1012901","DG1012902","DG1012905","DG1012907","DG1012908","DG1012915","DG1012917","DG1012921","DG1012922","DG1012923","DG1012928","DG1012929","DG1013001","DG1013002","DG1013004","DG1013007","DG1013015","DG1013016","DG1013017","DG1013023","DG1013220","DG1013221","DG1013222","DG1013223","DG1013320","DG1013321","DG1013322","DG1013323","DG1013325","DG1013503","DG1013504","DG1013505","DG1013596","DG1013701","DG1013702","DG1013703","DG1013704","DG1013707","DG1013708","DG1022120","DG1022121","DG1022123","DG1022124","DG1022125","DG1022320","DG1022321","DG1022322","DG1022323","DG1026020","DG1026021","DG1026022","DG1026023","DG1026024","DG1026025","DG1026026","DG1026027","DG1026028","DG1026029","DG1026030","DG1026099","DG1031220","DG1031221","DG1056620","DG1056621","DG1056623","DG1056624","DG1056625","DG1056626","DG1056696","DG1099103","DG1099111","DG1099204","DG1099205","DG1099206","DG1099207","DG1099303","DG1099502","DG1099506"
         ];
@@ -224,7 +683,7 @@
 
                 var div = L.DomUtil.create('div', 'info legend'),
                         grades = [-5, -3, -1, 0, 1, 3, 5],
-                        labels = ['<strong> Energy Consumption </strong>'],
+                        labels = ['<strong> Consumo energetico </strong>'],
                         from, to;
 
                 for (var i = 0; i < grades.length; i++) {
@@ -284,12 +743,9 @@
 
 // method that we will use to update the control based on feature properties passed
             info.update = function (props) {
-                console.log(props);
-                this._div.innerHTML = '<h4>Trento Lineset</h4>' +  (props ?
-                        '<b>' + props.LINESET+
-                        '<br><b> Precipitation: ' + props.avgprec+
-                        '<br><b> Energy Consumption: ' + props.avgcons
-                                : 'Hover over a lineset');
+                this._div.innerHTML = props ?
+                    linesetDetailsMarkup(props.LINESET, props.avgprec, props.avgcons) :
+                    '<p class="info-empty">Passa su una lineset per i dettagli</p>';
             };
 
             info.addTo(map);
@@ -297,8 +753,8 @@
            // var osmUrl = 'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png';
             //var osmUrl = 'http://{s}.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png';
             //var osmUrl ='http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png';
-            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-            var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+            var osmUrl='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+            var osmAttrib='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
             var osm = new L.TileLayer(osmUrl, {attribution: osmAttrib});
            /* var FreeMapSK = L.tileLayer('http://{s}.freemap.sk/T/{z}/{x}/{y}.jpeg', {
                 minZoom: 8,
@@ -321,6 +777,7 @@
                 attribution: 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             });
             */
+            /*
             var Stamen_TonerLines = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lines/{z}/{x}/{y}.png', {
                 attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 subdomains: 'abcd',
@@ -328,15 +785,17 @@
                 maxZoom: 20,
                 ext: 'png'
             });
+            */
 
             // start the map in trentino
             map.setView(new L.LatLng(46.2,11),10);
-            //map.addLayer(osm);
+            map.addLayer(osm);
+            dataLayer = L.layerGroup().addTo(map);
             //map.addLayer(FreeMapSK);
-            map.addLayer(CartoDB_Positron);
+          //  map.addLayer(CartoDB_Positron);
            // map.addLayer(OpenMapSurfer_AdminBounds);
            // map.addLayer(Hydda_RoadsAndLabels);
-           map.addLayer(Stamen_TonerLines);
+         //  map.addLayer(Stamen_TonerLines);
 
             //county.json is a topojson file
 /*
@@ -437,6 +896,10 @@
             filtered = nested.filter(function (d) {
                 return d.key === day + "" + slideValue($("#slider").slider("value"));
             });
+            if (!filtered.length || !filtered[0].values || !filtered[0].values.length) {
+                console.warn("Nessun dato disponibile per " + day + slideValue($("#slider").slider("value")) + ".");
+                return;
+            }
             console.log(filtered[0]);
             var max_precipitation = d3.max(filtered[0].values, function (ddd) {
                 return ddd.values.avgprec;
@@ -453,6 +916,10 @@
                 var ls =$.grep(filtered[0].values,function (ddd){
                     return ddd.key === linesets[$("#sliderlineset").slider("value")];
                 });
+                if (!ls.length) {
+                    console.warn("Nessun dato disponibile per la lineset selezionata.");
+                    return;
+                }
                 console.log(ls);
                 var dd = ls[0];
                 linesetcells.push(drawLinesetPoligon(data,dd));
@@ -521,7 +988,7 @@
                 "fillOpacity": "0.8"
             });
             //layeravgprecyrcle.addTo(map);
-            layeravgprecyrcle.bindPopup("Lineset "+dd.key+"<br>Precipitation "+dd.values.avgprec+"<br>");
+            layeravgprecyrcle.bindPopup(linesetDetailsMarkup(dd.key, dd.values.avgprec, dd.values.avgcons));
             return layeravgprecyrcle;
         }
 
@@ -562,7 +1029,7 @@
                         }
 
             });
-            layerlinesetcells.bindPopup("Lineset "+dd.key+"<br>Power consume "+dd.values.avgcons+"<br>Precipitation "+dd.values.avgprec+"<br>");
+            layerlinesetcells.bindPopup(linesetDetailsMarkup(dd.key, dd.values.avgprec, dd.values.avgcons));
             //console.log(layerlinesetcells);
             //layerlinesetcells.addTo(map);
             return layerlinesetcells;
@@ -639,6 +1106,14 @@
                     hours0 = parseInt(val0 / 60 % 24, 10);
             return getTime(hours0, minutes0);
         }
+        function formatTime(value){
+            var time = slideValue(value);
+            return time.slice(0, 2) + ":" + time.slice(2);
+        }
+        function formatDay(value){
+            var date = String(value);
+            return date.slice(6, 8) + "/" + date.slice(4, 6) + "/" + date.slice(0, 4);
+        }
 
         $(function() {
             $("#slider").slider({
@@ -648,7 +1123,7 @@
                 step: 10,
                 slide: function( event, ui ) {
 
-                    $("#time").val(slideValue(ui.value));
+                    $("#time").val(formatTime(ui.value));
                     //$("#time").text(day+""+slideValue(ui.value));
                     //qui rimuovo i valori vecchi
 
@@ -668,12 +1143,9 @@
                 var vals = opt.max - opt.min;
 
                 // Position the labels
-                for (var i = 0; i <= vals; i=i+10) {
-                    // Create a new element and position it with percentages
-                    if(i%60==0){
-                        var el = $('<label>' + slideValue(i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
-                        $("#slider").append(el);
-                    }
+                for (var i = 0; i <= vals; i=i+180) {
+                    var el = $('<label>' + formatTime(i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
+                    $("#slider").append(el);
                     //else{
                       //  var el = $('<label> - </label>').css('left', (i/vals*100) + '%');
                         //$("#slider").append(el);
@@ -681,7 +1153,7 @@
                     // Add the element inside #slider
                 }});
             //aggiuge la prima volta il numero, vuol dire scrive il valore di inizio
-            $( "#time" ).val(slideValue($("#slider").slider("value")));
+            $( "#time" ).val(formatTime($("#slider").slider("value")));
         });
 
         var day = "20131102";
@@ -692,7 +1164,7 @@
                 max:20131130,
                 step: 1,
                 slide: function( event, ui ) {
-                    $("#day").val(ui.value);
+                    $("#day").val(formatDay(ui.value));
                     day=ui.value;
                     d3.selectAll("g").remove();
                     readCsv();
@@ -707,23 +1179,28 @@
                 var vals = opt.max - opt.min;
                 // Position the labels
                 for (var i = 0; i <= vals; i=i+1) {
-                    // Create a new element and position it with percentages
-                    var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
-                    // Add the element inside #slider
-                    $("#sliderday").append(el);
+                    if ((i % 7 === 0 && i < vals - 3) || i === vals) {
+                        var el = $('<label>' + String(i + opt.min).slice(6) + '</label>').css('left', (i/vals*100) + '%');
+                        $("#sliderday").append(el);
+                    }
                 }});
             //aggiunge solo il valore di inzio
-            $( "#day" ).val($("#sliderday").slider("value"));
+            $( "#day" ).val(formatDay($("#sliderday").slider("value")));
         });
 
         function readCsv(){
             nested=[];
             //qui dovrei richiamare la cosa per aggiornare la mappa
-            d3.csv(day+".csv",function(d){
+            d3.csv("csv/" + day + ".csv",function(d){
                 //formatto la data come piace a noi
                 //d.STRINGTOBIGDECIMALTIME = format.parse(d.STRINGTOBIGDECIMALTIME);
                 return d;
-            }, function(data2) {
+            }, function(error, data2) {
+                if (error || !data2) {
+                    nested = [];
+                    console.error("Impossibile caricare csv/" + day + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
+                    return;
+                }
                 //var featuresgrid= geoJsonObject.features;
                 //annida i dati in un json strutturato
                 nested = d3.nest()
@@ -752,20 +1229,7 @@
                     //qui dovrei richiamare la cosa per aggiornare la mappa
                    $.getJSON(finaljson, filterandplotdata);
                 }
-            }).each(function() {
-                // Add labels to slider whose values
-                // are specified by min, max
-                // Get the options for this slider (specified above)
-                var opt = $(this).data().uiSlider.options;
-                // Get the number of possible values
-                var vals = opt.max - opt.min;
-                // Position the labels
-                for (var i = 0; i <= vals; i=i+10) {
-                    // Create a new element and position it with percentages
-                    var el = $('<label>' + linesets[(i + opt.min)] + '</label>').css('left', (i/vals*100) + '%');
-                    // Add the element inside #slider
-                    $("#sliderlineset").append(el);
-                }});
+            });
             $( "#lineset" ).val(linesets[$("#sliderlineset").slider("value")]);
 
         });
@@ -793,10 +1257,8 @@
                 // Get the number of possible values
                 var vals = opt.max - opt.min;
                 // Position the labels
-                for (var i = 0; i <= vals; i=i+1) {
-                    // Create a new element and position it with percentages
+                for (var i = 0; i <= vals; i=i+4) {
                     var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
-                    // Add the element inside #slider
                     $("#sliderprecipitation").append(el);
                 }});
             $( "#precipitation" ).val($("#sliderprecipitation").slider("values",0)+" - "+$("#sliderprecipitation").slider("values",1));
@@ -824,10 +1286,8 @@
                 // Get the number of possible values
                 var vals = opt.max - opt.min;
                 // Position the labels
-                for (var i = 0; i <= vals; i=i+1) {
-                    // Create a new element and position it with percentages
+                for (var i = 0; i <= vals; i=i+3) {
                     var el = $('<label>' + (i + opt.min) + '</label>').css('left', (i/vals*100) + '%');
-                    // Add the element inside #slider
                     $("#sliderconsume").append(el);
                 }});
             $( "#consume" ).val($("#sliderconsume").slider("values",0)+" - "+$("#sliderconsume").slider("values",1));
@@ -838,7 +1298,8 @@
 
 <body>
 <div id="header">
-    <h1>Trento Energy Consumption vs Precipitation</h1>
+    <h1>Trentino: energia e pioggia, ora per ora</h1>
+    <p class="subtitle">Consumo energetico e precipitazioni · novembre 2013</p>
 </div>
 <!--<nav>
     option one<br>
@@ -846,84 +1307,40 @@
     option three<br>
 </nav>-->
 
-<div id="section">
-    <p>
-    <h3>Select hours and minutes</h3>
-    <label for="time">Time (10 minutes increments)<br> (HHMM):</label>
-    <input type="text" id="time" readonly style="border:0; color:#f6931f; font-weight:bold;">
-    </p>
-    <p>
-    <div id="slider"></div>
-    </p>
-
-    <br>
-
-    <div class="line-separator"></div>
-
-    <p>
-    <h3>Select Days</h3>
-    <label for="day">Day (1 day increment) <br>(yyyymmdd):</label>
-    <input type="text" id="day" readonly style="border:0; color:#f6931f; font-weight:bold;">
-    </p>
-    <p>
-    <div id="sliderday"></div>
-    </p>
-
-    <br>
-    <br>
-    <div class="line-separator"></div>
-    <p>
-    <h3>Select Lineset</h3>
-
-    <td><input type="checkbox" id="linesetcheck" name="linesetr" value="true">Cerchiamo su un solo lineset</td>
-    <br>
-    <label for="lineset">Lineset (1 lineset incr.) <br>(DGXXXXXXX):</label>
-    <input type="text" id="lineset" readonly style="border:0; color:#f6931f; font-weight:bold;">
-    </p>
-    <p>
-    <div id="sliderlineset"></div>
-    </p>
-
-    <br>
-    <br>
-    <br>
-    <div class="line-separator"></div>
-    <p>
-    <h3>Select Precipitation Range Value</h3>
-
-
-    <br>
-    <label for="precipitation">Precipitation (1 unit incr.) <br>(XX.XXX):</label>
-    <input type="text" id="precipitation" readonly style="border:0; color:#f6931f; font-weight:bold;">
-    </p>
-    <p>
-    <div id="sliderprecipitation"></div>
-    </p>
-    <br>
-    <div class="line-separator"></div>
-    <p>
-    <h3>Select Energy Consumption Range Value</h3>
-
-
-    <br>
-    <label for="consume">Power Consume (1 unit incr.) <br>(XX.XXX):</label>
-    <input type="text" id="consume" readonly style="border:0; color:#f6931f; font-weight:bold;">
-    </p>
-    <p>
-    <div id="sliderconsume"></div>
-    </p>
-
-</div>
+<aside id="section" aria-label="Filtri della mappa">
+    <section class="control-group">
+        <h3>Orario</h3>
+        <div class="value-row"><label for="time">Ora selezionata</label><input class="value-output" type="text" id="time" readonly></div>
+        <div id="slider" aria-label="Seleziona l'orario, a intervalli di dieci minuti"></div>
+    </section>
+    <section class="control-group">
+        <h3>Giorno · novembre 2013</h3>
+        <div class="value-row"><label for="day">Data selezionata</label><input class="value-output" type="text" id="day" readonly></div>
+        <div id="sliderday" aria-label="Seleziona il giorno"></div>
+    </section>
+    <section class="control-group">
+        <h3>Lineset</h3>
+        <label class="check-row"><input type="checkbox" id="linesetcheck" name="linesetr" value="true">Filtra un solo lineset</label>
+        <div class="value-row"><label for="lineset">Codice selezionato</label><input class="value-output" type="text" id="lineset" readonly></div>
+        <div id="sliderlineset" aria-label="Seleziona un lineset"></div>
+    </section>
+    <section class="control-group">
+        <h3>Intervallo precipitazioni</h3>
+        <div class="value-row"><label for="precipitation">Intervallo selezionato</label><input class="value-output" type="text" id="precipitation" readonly></div>
+        <div id="sliderprecipitation" aria-label="Filtra per intervallo di precipitazioni"></div>
+    </section>
+    <section class="control-group">
+        <h3>Intervallo consumo energetico</h3>
+        <div class="value-row"><label for="consume">Intervallo selezionato</label><input class="value-output" type="text" id="consume" readonly></div>
+        <div id="sliderconsume" aria-label="Filtra per intervallo di consumo energetico"></div>
+    </section>
+</aside>
 
 
 <div id="aside">
     <div id="mapcanvas"></div>
 
 </div>
-<div id="footer">
-   Chuck Norris Copyright
-</div>
-
 </body>
 
 </html>
