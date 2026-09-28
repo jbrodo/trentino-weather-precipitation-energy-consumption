@@ -645,17 +645,29 @@
         var dataLayer;
         var activeView = "map";
         var dailyTrend = [];
-        var dailyTrendRequested = false;
+        var dailyTrendLoading = false;
+        var dailyTrendNextDay = 1;
         var dailyTrendLoaded = false;
         var color;
         var finaljson = "final.json";//"final.json";//"trentino-grid.geojson";
         var info;
+        function formatTooltipNumber(value) {
+            var number = Number(value);
+            if (value === null || value === "" || !isFinite(number)) {
+                return value;
+            }
+            if (number === 0) {
+                return "0";
+            }
+            return d3.format(".4g")(number).replace(".", ",");
+        }
+
         function linesetDetailsMarkup(lineset, precipitation, energy) {
             return '<div class="data-details">' +
                 '<strong class="data-title">' + lineset + '</strong>' +
                 '<dl class="data-values">' +
-                '<div class="data-value data-precipitation"><dt>Precipitazioni</dt><dd>' + precipitation + '</dd></div>' +
-                '<div class="data-value"><dt>Consumo energetico</dt><dd>' + energy + '</dd></div>' +
+                '<div class="data-value data-precipitation"><dt>Precipitazioni (mm)</dt><dd>' + formatTooltipNumber(precipitation) + '</dd></div>' +
+                '<div class="data-value"><dt>Consumo energetico (kWh)</dt><dd>' + formatTooltipNumber(energy) + '</dd></div>' +
                 '</dl>' +
                 '</div>';
         }
@@ -859,6 +871,7 @@
                 dates.add(d.key);
             });
 
+            renderDataTable();
             drawOnlyALineset(data,nested);
             //};
             //seleziono solo le celle appartenenti ad un LINESET
@@ -890,6 +903,10 @@
             //var gprecipitatio = L.layerGroup([layeravgprecyrcle]);
             //var glineset = L.layerGroup([layerlinesetcells]);
 
+            if (dataLayer) {
+                dataLayer.clearLayers();
+            }
+            info.update();
             console.log(day + "" + slideValue($("#slider").slider("value")));
             var filtered = [];
             var x = document.getElementById("linesetcheck");
@@ -898,6 +915,7 @@
             });
             if (!filtered.length || !filtered[0].values || !filtered[0].values.length) {
                 console.warn("Nessun dato disponibile per " + day + slideValue($("#slider").slider("value")) + ".");
+                info.update();
                 return;
             }
             console.log(filtered[0]);
@@ -918,20 +936,23 @@
                 });
                 if (!ls.length) {
                     console.warn("Nessun dato disponibile per la lineset selezionata.");
+                    info.update();
                     return;
                 }
                 console.log(ls);
                 var dd = ls[0];
-                linesetcells.push(drawLinesetPoligon(data,dd));
+                if (dd.values.avgcons >= $("#sliderconsume").slider("values",0) && dd.values.avgcons <= $("#sliderconsume").slider("values",1)) {
+                    linesetcells.push(drawLinesetPoligon(data,dd));
+                }
 
                 for (var i = 0; i < linesetcells.length; i++) {
-                    linesetcells[i].addTo(map);
+                    dataLayer.addLayer(linesetcells[i]);
                 }
                 linesetcells = [];
                 linesetcells.push(drawPrecipitationCyrcle(dd,max_precipitation));
                 for (var i = 0; i < linesetcells.length; i++) {
                     if($("#sliderprecipitation").slider("values",0)<dd.values.avgprec && dd.values.avgprec<=$("#sliderprecipitation").slider("values",1)){
-                        linesetcells[i].addTo(map);
+                        dataLayer.addLayer(linesetcells[i]);
                     }
                 }
                 linesetcells = [];
@@ -946,11 +967,11 @@
                     }
                 });
                 for (var i = 0; i < linesetcells.length; i++) {
-                    linesetcells[i].addTo(map);
+                    dataLayer.addLayer(linesetcells[i]);
                 }
                 linesetcells = [];
                 for (var j = 0; j < cyrclecells.length; j++) {
-                    cyrclecells[j].addTo(map);
+                    dataLayer.addLayer(cyrclecells[j]);
                 }
                 cyrclecells = [];
             };
@@ -1115,6 +1136,175 @@
             return date.slice(6, 8) + "/" + date.slice(4, 6) + "/" + date.slice(0, 4);
         }
 
+        function renderDataTable() {
+            var selectedTimestamp = day + slideValue($("#slider").slider("value"));
+            var timestampData = nested.filter(function (entry) {
+                return entry.key === selectedTimestamp;
+            });
+            var precipitationRange = $("#sliderprecipitation").slider("values");
+            var consumptionRange = $("#sliderconsume").slider("values");
+            var selectedLineset = linesets[$("#sliderlineset").slider("value")];
+            var searchText = $("#lineset-search").val() || "";
+            var rows = timestampData.length ? timestampData[0].values.filter(function (entry) {
+                var matchesPrecipitation = entry.values.avgprec > precipitationRange[0] && entry.values.avgprec <= precipitationRange[1];
+                var matchesConsumption = entry.values.avgcons >= consumptionRange[0] && entry.values.avgcons <= consumptionRange[1];
+                var matchesLineset = !$("#linesetcheck").prop("checked") || entry.key === selectedLineset;
+                var matchesSearch = entry.key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1;
+                return matchesPrecipitation && matchesConsumption && matchesLineset && matchesSearch;
+            }) : [];
+
+            $("#data-timestamp").text(formatDay(day) + " · " + formatTime($("#slider").slider("value")));
+            $("#table-count").text(rows.length + " lineset");
+            $("#data-empty").toggle(rows.length === 0).text(timestampData.length ? "Nessuna lineset corrisponde ai filtri selezionati." : "Nessun dato disponibile per questo giorno e orario.");
+
+            var tableRows = d3.select("#data-rows").selectAll("tr").data(rows, function (entry) {
+                return entry.key;
+            });
+            tableRows.exit().remove();
+            var newRows = tableRows.enter().append("tr");
+            newRows.append("td");
+            newRows.append("td");
+            newRows.append("td");
+            tableRows = d3.select("#data-rows").selectAll("tr");
+            tableRows.select("td:nth-child(1)").text(function (entry) { return entry.key; });
+            tableRows.select("td:nth-child(2)").text(function (entry) { return d3.format(".4f")(entry.values.avgprec); });
+            tableRows.select("td:nth-child(3)").text(function (entry) { return d3.format(".4f")(entry.values.avgcons); });
+        }
+
+        function loadDailyTrend() {
+            if (dailyTrendLoaded) {
+                renderDailyTrend();
+                return;
+            }
+            if (dailyTrendLoading || activeView !== "trend") {
+                return;
+            }
+            dailyTrendLoading = true;
+            loadDailyTrendDay(dailyTrendNextDay);
+        }
+
+        function loadDailyTrendDay(currentDay) {
+            var dateKey = "201311" + (currentDay < 10 ? "0" : "") + currentDay;
+            $("#trend-status").text("Caricamento del giorno " + currentDay + " di 30...");
+            d3.csv("csv/" + dateKey + ".csv", function (error, rows) {
+                var dailyValues = {day: currentDay, avgprec: null, avgcons: null};
+                if (!error && rows && rows.length) {
+                    dailyValues.avgprec = d3.mean(rows, function (row) {
+                        var value = +row.avgprec;
+                        return isFinite(value) ? value : undefined;
+                    });
+                    dailyValues.avgcons = d3.mean(rows, function (row) {
+                        var value = +row.avgcons;
+                        return isFinite(value) ? value : undefined;
+                    });
+                }
+                dailyTrend.push(dailyValues);
+                dailyTrendNextDay = currentDay + 1;
+                dailyTrendLoading = false;
+                if (dailyTrendNextDay > 30) {
+                    dailyTrendLoaded = true;
+                    if (activeView === "trend") {
+                        renderDailyTrend();
+                    }
+                } else if (activeView === "trend") {
+                    loadDailyTrend();
+                }
+            });
+        }
+
+        function drawDailyChart(containerId, metric, stroke) {
+            var container = d3.select(containerId);
+            container.selectAll("*").remove();
+            var validValues = dailyTrend.filter(function (entry) {
+                return entry[metric] !== null && isFinite(entry[metric]);
+            });
+            if (!validValues.length) {
+                container.append("div").attr("class", "trend-empty").text("Nessun dato disponibile.");
+                return;
+            }
+
+            var width = container.node().clientWidth;
+            if (width < 240) {
+                container.append("div").attr("class", "trend-empty").text("Allarga la finestra per visualizzare il grafico.");
+                return;
+            }
+            var height = 300;
+            var margin = {top: 12, right: 16, bottom: 38, left: 52};
+            var innerWidth = width - margin.left - margin.right;
+            var innerHeight = height - margin.top - margin.bottom;
+            var extent = d3.extent(validValues, function (entry) { return entry[metric]; });
+            if (extent[0] === extent[1]) {
+                var padding = Math.abs(extent[0]) * 0.05 || 1;
+                extent = [extent[0] - padding, extent[1] + padding];
+            }
+            var x = d3.scale.linear().domain([1, 30]).range([0, innerWidth]);
+            var y = d3.scale.linear().domain(extent).nice().range([innerHeight, 0]);
+            var svg = container.append("svg")
+                    .attr("viewBox", "0 0 " + width + " " + height)
+                    .attr("role", "img")
+                    .attr("aria-label", metric === "avgprec" ? "Media giornaliera delle precipitazioni" : "Media giornaliera del consumo energetico")
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            var xAxis = d3.svg.axis().scale(x).orient("bottom").tickValues([1, 5, 10, 15, 20, 25, 30]).tickFormat(function (value) { return value; });
+            var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5).tickFormat(d3.format(".3g"));
+            var gridAxis = d3.svg.axis().scale(y).orient("left").ticks(5).tickSize(-innerWidth, 0, 0).tickFormat("");
+            var line = d3.svg.line()
+                    .defined(function (entry) { return entry[metric] !== null && isFinite(entry[metric]); })
+                    .x(function (entry) { return x(entry.day); })
+                    .y(function (entry) { return y(entry[metric]); });
+
+            svg.append("g").attr("class", "trend-gridline trend-axis").call(gridAxis);
+            svg.append("g").attr("class", "trend-axis")
+                    .attr("transform", "translate(0," + innerHeight + ")")
+                    .call(xAxis);
+            svg.append("g").attr("class", "trend-axis").call(yAxis);
+            svg.append("path").datum(dailyTrend).attr("class", "trend-line")
+                    .attr("d", line).style("stroke", stroke);
+            svg.selectAll(".trend-point").data(validValues).enter().append("circle")
+                    .attr("class", "trend-point")
+                    .attr("cx", function (entry) { return x(entry.day); })
+                    .attr("cy", function (entry) { return y(entry[metric]); })
+                    .attr("r", 3.5)
+                    .style("fill", stroke)
+                    .append("title")
+                    .text(function (entry) { return "Giorno " + entry.day + ": " + d3.format(".4f")(entry[metric]); });
+        }
+
+        function renderDailyTrend() {
+            if (!dailyTrendLoaded || activeView !== "trend") {
+                return;
+            }
+            var unavailableDays = dailyTrend.filter(function (entry) {
+                return entry.avgprec === null || entry.avgcons === null;
+            }).map(function (entry) { return entry.day; });
+            var status = "Media aritmetica semplice dei valori presenti in ciascun CSV giornaliero; le unità non sono documentate. I grafici non applicano i filtri della mappa.";
+            if (unavailableDays.length) {
+                status += " Giorni senza dati: " + unavailableDays.join(", ") + ".";
+            }
+            $("#trend-status").text(status);
+            drawDailyChart("#trend-precipitation", "avgprec", "#4e93a0");
+            drawDailyChart("#trend-consumption", "avgcons", "#d45e3f");
+        }
+
+        function switchView(viewName) {
+            activeView = viewName;
+            $("body").removeClass("view-map view-data view-trend").addClass("view-" + viewName);
+            $(".view-tab").attr("aria-selected", "false").attr("tabindex", "-1")
+                    .filter("[data-view='" + viewName + "']").attr("aria-selected", "true").attr("tabindex", "0");
+            $("#map-view").attr("aria-hidden", viewName !== "map");
+            $("#data-view").attr("aria-hidden", viewName !== "data");
+            $("#trend-view").attr("aria-hidden", viewName !== "trend");
+            if (viewName === "map") {
+                window.setTimeout(function () { map.invalidateSize(); }, 0);
+            } else if (viewName === "data") {
+                renderDataTable();
+            } else if (dailyTrendLoaded) {
+                renderDailyTrend();
+            } else {
+                loadDailyTrend();
+            }
+        }
+
         $(function() {
             $("#slider").slider({
                 value:600,
@@ -1128,7 +1318,6 @@
                     //qui rimuovo i valori vecchi
 
                     // testLayer.clearLayers();
-                    d3.selectAll("g").remove();
                     //qui dovrei richiamare la cosa per aggiornare la mappa
                     $.getJSON(finaljson, filterandplotdata);
 
@@ -1166,7 +1355,6 @@
                 slide: function( event, ui ) {
                     $("#day").val(formatDay(ui.value));
                     day=ui.value;
-                    d3.selectAll("g").remove();
                     readCsv();
                    // d3.readyWait();
                 }
@@ -1198,6 +1386,7 @@
             }, function(error, data2) {
                 if (error || !data2) {
                     nested = [];
+                    renderDataTable();
                     console.error("Impossibile caricare csv/" + day + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
                     return;
                 }
@@ -1212,6 +1401,7 @@
                         })
                         .rollup(aggrTime)
                         .entries(data2);
+                    renderDataTable();
                 $.getJSON(finaljson, filterandplotdata);
             });
         }
@@ -1225,7 +1415,6 @@
                 slide: function( event, ui ) {
                     $("#lineset").val(linesets[ui.value]);
                     lineset=linesets[ui.value];
-                    d3.selectAll("g").remove();
                     //qui dovrei richiamare la cosa per aggiornare la mappa
                    $.getJSON(finaljson, filterandplotdata);
                 }
@@ -1245,7 +1434,6 @@
                 slide: function( event, ui ) {
                     $("#precipitation").val(ui.values[0]+" - "+ui.values[1]);
                     //lineset=linesets[ui.value];
-                    d3.selectAll("g").remove();
                     //qui dovrei richiamare la cosa per aggiornare la mappa
                     $.getJSON(finaljson, filterandplotdata);
                 }
@@ -1274,7 +1462,6 @@
                 slide: function( event, ui ) {
                     $("#consume").val(ui.values[0]+" - "+ui.values[1]);
                     //lineset=linesets[ui.value];
-                    d3.selectAll("g").remove();
                     //qui dovrei richiamare la cosa per aggiornare la mappa
                     $.getJSON(finaljson, filterandplotdata);
                 }
@@ -1292,6 +1479,29 @@
                 }});
             $( "#consume" ).val($("#sliderconsume").slider("values",0)+" - "+$("#sliderconsume").slider("values",1));
         });
+        $(function() {
+            $(".view-tab").on("click", function () {
+                switchView($(this).attr("data-view"));
+            }).on("keydown", function (event) {
+                var direction = event.keyCode === 37 || event.keyCode === 38 ? -1 : event.keyCode === 39 || event.keyCode === 40 ? 1 : 0;
+                if (direction) {
+                    event.preventDefault();
+                    var tabs = $(".view-tab");
+                    var nextIndex = (tabs.index(this) + direction + tabs.length) % tabs.length;
+                    tabs.eq(nextIndex).focus().trigger("click");
+                }
+            });
+            $("#lineset-search").on("input", renderDataTable);
+            $("#linesetcheck").on("change", function () {
+                $.getJSON(finaljson, filterandplotdata);
+                renderDataTable();
+            });
+            $(window).on("resize", function () {
+                if (activeView === "trend" && dailyTrendLoaded) {
+                    renderDailyTrend();
+                }
+            });
+        });
         //end document ready
     </script>
 </head>
@@ -1300,6 +1510,11 @@
 <div id="header">
     <h1>Trentino: energia e pioggia, ora per ora</h1>
     <p class="subtitle">Consumo energetico e precipitazioni · novembre 2013</p>
+    <nav class="view-tabs" role="tablist" aria-label="Viste della dashboard">
+        <button id="map-tab" class="view-tab" type="button" role="tab" data-view="map" aria-selected="true" aria-controls="map-view" tabindex="0">Mappa</button>
+        <button id="data-tab" class="view-tab" type="button" role="tab" data-view="data" aria-selected="false" aria-controls="data-view" tabindex="-1">Dati</button>
+        <button id="trend-tab" class="view-tab" type="button" role="tab" data-view="trend" aria-selected="false" aria-controls="trend-view" tabindex="-1">Andamento</button>
+    </nav>
 </div>
 <!--<nav>
     option one<br>
@@ -1307,7 +1522,7 @@
     option three<br>
 </nav>-->
 
-<aside id="section" aria-label="Filtri della mappa">
+<aside id="section" aria-label="Filtri della mappa e della tabella">
     <section class="control-group">
         <h3>Orario</h3>
         <div class="value-row"><label for="time">Ora selezionata</label><input class="value-output" type="text" id="time" readonly></div>
@@ -1337,10 +1552,46 @@
 </aside>
 
 
-<div id="aside">
-    <div id="mapcanvas"></div>
-
-</div>
+<main id="aside">
+    <section id="map-view" class="view-panel" role="tabpanel" aria-labelledby="map-tab">
+        <div id="mapcanvas"></div>
+    </section>
+    <section id="data-view" class="view-panel" role="tabpanel" aria-labelledby="data-tab" aria-hidden="true">
+        <header class="panel-heading">
+            <h2>Dati per lineset</h2>
+            <p>Valori dell'orario selezionato, aggiornati con i filtri a sinistra. <span id="data-timestamp"></span></p>
+        </header>
+        <div class="table-toolbar">
+            <label for="lineset-search">Cerca lineset
+                <input id="lineset-search" type="search" placeholder="Es. DG1000420" autocomplete="off">
+            </label>
+            <span id="table-count" aria-live="polite">0 lineset</span>
+        </div>
+        <div class="table-scroll">
+            <table id="data-table">
+                <thead><tr><th scope="col">Lineset</th><th scope="col">Precipitazioni</th><th scope="col">Consumo energetico</th></tr></thead>
+                <tbody id="data-rows"></tbody>
+            </table>
+            <p id="data-empty" aria-live="polite">Caricamento dati...</p>
+        </div>
+    </section>
+    <section id="trend-view" class="view-panel" role="tabpanel" aria-labelledby="trend-tab" aria-hidden="true">
+        <header class="panel-heading">
+            <h2>Andamento giornaliero · novembre 2013</h2>
+            <p id="trend-status" class="panel-note" aria-live="polite">I grafici mostrano le medie giornaliere dei valori disponibili.</p>
+        </header>
+        <div class="trend-grid">
+            <section class="trend-chart" aria-labelledby="trend-precipitation-title">
+                <h3 id="trend-precipitation-title">Precipitazioni</h3>
+                <div id="trend-precipitation"></div>
+            </section>
+            <section class="trend-chart" aria-labelledby="trend-consumption-title">
+                <h3 id="trend-consumption-title">Consumo energetico</h3>
+                <div id="trend-consumption"></div>
+            </section>
+        </div>
+    </section>
+</main>
 </body>
 
 </html>

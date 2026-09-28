@@ -1,8 +1,8 @@
 # Trentino weather, precipitation and energy consumption
 
-> Dashboard statica D3 v3 e Leaflet per esplorare consumo energetico e precipitazioni medi per lineset nel Trentino, novembre 2013. Documentazione in italiano.
+> Dashboard statica D3 v3 e Leaflet con viste Mappa, Dati per lineset e Andamento giornaliero per esplorare consumo energetico e precipitazioni nel Trentino, novembre 2013. Documentazione in italiano.
 
-La fonte primaria e' index.html; i dati giornalieri CSV sono nell'archivio Data_Vis_Code_Files_CSV.tar.gz. Non esistono backend o API applicative. Unita', provenienza e licenza dei dati non sono confermate. Questa e' una guida per la consultazione, non una licenza o un'autorizzazione al crawling.
+La fonte primaria e' index.html; la vista Dati riusa filtri di giorno, orario, intervalli e lineset. Andamento mostra medie aritmetiche non ponderate per riga dei CSV giornalieri e non applica i filtri della mappa. I dati giornalieri CSV sono nell'archivio Data_Vis_Code_Files_CSV.tar.gz. Non esistono backend o API applicative. Unita', provenienza e licenza dei dati non sono confermate. Questa e' una guida per la consultazione, non una licenza o un'autorizzazione al crawling.
 
 ## Wiki
 

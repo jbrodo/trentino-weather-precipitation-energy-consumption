@@ -2,12 +2,13 @@
 
 [Indice](Home.md) | [Funzionalita](Funzionalita.md) | [Dati](Dati.md)
 
-- I CSV sono solo nell'archivio: senza estrazione la chiamata `d3.csv(day + '.csv')` non produce i dati richiesti.
-- Il codice accede direttamente a `filtered[0].values` e `ls[0]`: orario o lineset senza dati possono produrre errori. Lo slider del tempo include 1440, che diventa `0000`, non la mezzanotte del giorno successivo.
-- Il ridisegno chiama `d3.selectAll('g').remove()`, ma i layer aggiunti alla mappa Leaflet non vengono rimossi esplicitamente: cambi di filtri e date possono sovrapporre dati vecchi.
-- La selezione di una sola lineset disegna il poligono senza applicare il filtro sul consumo; il checkbox non forza da solo il ridisegno.
+- I CSV non sono tracciati da Git e devono essere estratti nella cartella `csv/`. La tabella e la mappa mostrano uno stato senza dati se il CSV del giorno manca; l'andamento lascia senza punto i giorni non caricabili.
+- Orario o lineset senza dati vengono gestiti senza accedere a elementi vuoti. Lo slider del tempo include 1440, che diventa `0000`, non la mezzanotte del giorno successivo.
+- I layer tematici sono ora contenuti in un gruppo Leaflet che viene pulito a ogni ridisegno. La modalità lineset singolo risponde al checkbox e ai filtri.
+- L'andamento giornaliero calcola una media aritmetica per riga dei valori nel CSV: non è ponderata per ubicazioni, timestamp o lineset e può riflettere diversamente copertura e numerosità delle righe tra giorni. I filtri della mappa non si applicano ai grafici.
 - Il valore di consumo influenza il colore del bordo, non il riempimento; la legenda di precipitazione e il layer switcher sono inattivi.
 - La pagina non gestisce esplicitamente errori di caricamento CSV/JSON e dipende da risorse esterne HTTP, con possibili problemi di rete e mixed content.
+- Gli errori di caricamento di `final.json` non hanno ancora uno stato esplicito nella pagina; le risorse remote e le tile dipendono dalla rete.
 - Nessuna suite di test automatica e nessun contratto verificato su unita', provenienza e licenze dei dati. Evitare conclusioni scientifiche o dichiarazioni di open data senza metadati esterni.
 
-Per verificare manualmente: estrarre i CSV, avviare il server come indicato in [Architettura](Architettura.md), aprire la console di rete, selezionare un orario presente, cambiare giorno e range e controllare sia le richieste sia la rimozione dei layer vecchi. I problemi elencati sono lo stato del codice, non funzionalita' gia' corrette.
+Per verificare manualmente: estrarre i CSV, avviare il server come indicato in [Architettura](Architettura.md), aprire la console di rete, passare tra le tre viste, selezionare un orario presente, cambiare giorno e range, attivare la lineset singola e controllare popup, righe e grafici. I problemi elencati sono lo stato residuo del codice.

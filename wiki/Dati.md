@@ -14,6 +14,8 @@
 2. `aggrTime` somma `NR_UBICAZIONI`, calcola la media aritmetica semplice di `avgcons` e `avgprec`, calcola le medie delle coordinate e raccoglie gli `id_cell` distinti. La somma `ubicazioni` non e' visualizzata; le medie non sono ponderate per ubicazioni.
 3. `drawOnlyALineset` seleziona la chiave `giorno + HHMM`. `drawLinesetPoligon` confronta gli `id_cell` con gli ID delle geometrie, fonde le celle e rappresenta `avgcons`; `drawPrecipitationCyrcle` usa il centro aggregato e `avgprec`.
 
+La tabella mostra gli aggregati del giorno e timestamp selezionati, filtrati con gli intervalli della mappa. L'andamento giornaliero calcola separatamente `d3.mean` di `avgprec` e `avgcons` su tutte le righe presenti nel CSV del giorno: ogni riga valida ha lo stesso peso, senza ponderazione per `NR_UBICAZIONI`, timestamp o lineset. I filtri della mappa non si applicano ai grafici. Un CSV non disponibile o senza valori validi produce un giorno senza punto; non vengono interpolate lacune. Le unità restano non documentate.
+
 Nel campione, `mid_lat` vale circa 11 e `mid_long` circa 46: i nomi delle colonne sembrano invertiti rispetto alle coordinate geografiche. Il codice imposta `x = mean(mid_long)` e `y = mean(mid_lat)`, poi costruisce `L.LatLng(x, y)`. Conservare questo ordine fino a verifica della provenienza dei dati.
 
 Non sono presenti metadati affidabili sulle unita' di misura, sul produttore, sulla qualita' dei dati, sulla licenza o sul significato del segno di `avgcons`. Le scale degli slider non bastano a determinarli: non inferire kWh o mm.
