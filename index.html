@@ -22,6 +22,24 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
     <!--<script type="text/javascript" src="underscore-min.js"></script>-->
     <!--<script src="http://d3js.org/queue.v1.min.js"></script>-->
+    <script>
+        var DEBUG_LOGS = false;
+        function debugLog() {
+            if (DEBUG_LOGS && window.console && typeof console.log === "function") {
+                console.log.apply(console, arguments);
+            }
+        }
+        function debugWarn() {
+            if (DEBUG_LOGS && window.console && typeof console.warn === "function") {
+                console.warn.apply(console, arguments);
+            }
+        }
+        function debugError() {
+            if (DEBUG_LOGS && window.console && typeof console.error === "function") {
+                console.error.apply(console, arguments);
+            }
+        }
+    </script>
     <style>
 
         #header {
@@ -720,6 +738,9 @@
             color: #24332f;
             font-family: "Segoe UI Variable", "Aptos", "Helvetica Neue", sans-serif;
         }
+        body.map-spikes .info.legend {
+            display: none;
+        }
         .info {
             border-left: 3px solid var(--accent);
         }
@@ -1003,11 +1024,11 @@
             //if (!L.Browser.ie && !L.Browser.opera) {
             //    layer.bringToFront();
             //}
-            console.log(layer);
+            debugLog(layer);
             info.update(layer._options.statics);
         }
         function resetHighlight(e) {
-            console.log(e);
+            debugLog(e);
             e.target.setStyle( {
                     // "color": "green",
                     "color": color(e.target._options.statics.avgcons/* + Math.random() * 10*/),
@@ -1028,7 +1049,7 @@
         function filterandplotdata(data){
             geoJsonObject = topojson.feature(data, data.objects.trentinogrid);
            // geoJsonObject = geoJson.feature(data, data.trentinogrid);
-            console.log("nested",nested);
+            debugLog("nested", nested);
             dates = d3.set();
             nested.forEach(function (d){
                 dates.add(d.key);
@@ -1070,22 +1091,22 @@
                 dataLayer.clearLayers();
             }
             info.update();
-            console.log(day + "" + slideValue($("#slider").slider("value")));
+            debugLog(day + "" + slideValue($("#slider").slider("value")));
             var filtered = [];
             var x = document.getElementById("linesetcheck");
             filtered = nested.filter(function (d) {
                 return d.key === day + "" + slideValue($("#slider").slider("value"));
             });
             if (!filtered.length || !filtered[0].values || !filtered[0].values.length) {
-                console.warn("Nessun dato disponibile per " + day + slideValue($("#slider").slider("value")) + ".");
+                debugWarn("Nessun dato disponibile per " + day + slideValue($("#slider").slider("value")) + ".");
                 info.update();
                 return;
             }
-            console.log(filtered[0]);
+            debugLog(filtered[0]);
             var max_precipitation = d3.max(filtered[0].values, function (ddd) {
                 return ddd.values.avgprec;
             });
-            console.log(max_precipitation);
+            debugLog(max_precipitation);
             if (mapMode === "spikes") {
                 drawSpikeMap(filtered[0].values);
                 return;
@@ -1094,19 +1115,19 @@
             var cyrclecells = [];
             if (x.checked == true) {
 
-                //console.log($("#sliderlineset").slider("value"));
-                console.log(linesets[$("#sliderlineset").slider("value")]);
-                console.log(filtered[0].values);
+                //debugLog($("#sliderlineset").slider("value"));
+                debugLog(linesets[$("#sliderlineset").slider("value")]);
+                debugLog(filtered[0].values);
 
                 var ls =$.grep(filtered[0].values,function (ddd){
                     return ddd.key === linesets[$("#sliderlineset").slider("value")];
                 });
                 if (!ls.length) {
-                    console.warn("Nessun dato disponibile per la lineset selezionata.");
+                    debugWarn("Nessun dato disponibile per la lineset selezionata.");
                     info.update();
                     return;
                 }
-                console.log(ls);
+                debugLog(ls);
                 var dd = ls[0];
                 if (dd.values.avgcons >= $("#sliderconsume").slider("values",0) && dd.values.avgcons <= $("#sliderconsume").slider("values",1)) {
                     linesetcells.push(drawLinesetPoligon(data,dd));
@@ -1184,7 +1205,7 @@
                     iconSize: [28, 108],
                     iconAnchor: [14, 54]
                 });
-                var marker = L.marker(new L.LatLng(entry.values.x, entry.values.y), {icon: icon});
+                var marker = L.marker(new L.LatLng(entry.values.x, entry.values.y), {icon: icon, title: entry.key});
                 marker.bindPopup(linesetDetailsMarkup(entry.key, entry.values.avgprec, entry.values.avgcons));
                 marker.on({
                     mouseover: function () { info.update({LINESET: entry.key, avgprec: entry.values.avgprec, avgcons: entry.values.avgcons}); },
@@ -1414,6 +1435,7 @@
                         renderDailyTrend();
                     }
                 } else if (activeView === "trend") {
+                    renderDailyTrend();
                     loadDailyTrend();
                 }
             });
@@ -1478,13 +1500,16 @@
         }
 
         function renderDailyTrend() {
-            if (!dailyTrendLoaded || activeView !== "trend") {
+            if (!dailyTrend.length || activeView !== "trend") {
                 return;
             }
             var unavailableDays = dailyTrend.filter(function (entry) {
                 return entry.avgprec === null || entry.avgcons === null;
             }).map(function (entry) { return entry.day; });
             var status = "Media aritmetica semplice dei valori presenti in ciascun CSV giornaliero; le unità non sono documentate. I grafici non applicano i filtri della mappa.";
+            if (!dailyTrendLoaded) {
+                status = "Caricamento in corso: " + dailyTrend.length + " di 30 giorni. " + status;
+            }
             if (unavailableDays.length) {
                 status += " Giorni senza dati: " + unavailableDays.join(", ") + ".";
             }
@@ -1504,9 +1529,10 @@
                     .key(function (row) { return row.STRINGTOBIGDECIMAL.slice(8, 10); })
                     .sortKeys(d3.ascending)
                     .rollup(function (hourRows) {
+                        var averageConsumption = d3.mean(hourRows, function (row) { return +row.avgcons; });
                         return {
                             avgprec: d3.mean(hourRows, function (row) { return +row.avgprec; }),
-                            avgcons: d3.mean(hourRows, function (row) { return +row.avgcons; })
+                            avgcons: Math.abs(averageConsumption) < 1e-12 ? 0 : averageConsumption
                         };
                     })
                     .entries(validRows)
@@ -1693,7 +1719,7 @@
                     nested = [];
                     aggregateHourlyTrend([], requestedDay, true);
                     renderDataTable();
-                    console.error("Impossibile caricare csv/" + requestedDay + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
+                    debugError("Impossibile caricare csv/" + requestedDay + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
                     return;
                 }
                 //var featuresgrid= geoJsonObject.features;
@@ -1813,9 +1839,13 @@
             });
             $("[data-map-mode]").on("click", function () {
                 mapMode = $(this).attr("data-map-mode");
+                $("body").toggleClass("map-spikes", mapMode === "spikes");
                 $("[data-map-mode]").attr("aria-pressed", "false")
                         .filter("[data-map-mode='" + mapMode + "']").attr("aria-pressed", "true");
                 $("#spike-metric-control").toggle(mapMode === "spikes");
+                if (mapMode === "lines") {
+                    $("#spike-note").text("Colori del bordo: consumo; cerchi: precipitazioni.");
+                }
                 $.getJSON(finaljson, filterandplotdata);
             });
             $("#spike-metric").on("change", function () {
@@ -1894,6 +1924,7 @@
                 <button type="button" data-map-mode="lines" aria-pressed="true">Lineset</button>
                 <button type="button" data-map-mode="spikes" aria-pressed="false">Picchi</button>
             </div>
+            <span id="spike-note">Visualizzazione per lineset.</span>
             <label id="spike-metric-control" style="display: none;">Variabile
                 <select id="spike-metric" aria-label="Variabile rappresentata dai picchi">
                     <option value="avgprec">Precipitazioni</option>
