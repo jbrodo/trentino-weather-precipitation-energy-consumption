@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-json
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+        files: ^(README\.md|llms\.txt|wiki/.*\.md|\.github/.*\.md|\.pre-commit-config\.yaml)$
+      - id: end-of-file-fixer
+        files: ^(README\.md|llms\.txt|wiki/.*\.md|\.github/.*\.md|\.pre-commit-config\.yaml)$

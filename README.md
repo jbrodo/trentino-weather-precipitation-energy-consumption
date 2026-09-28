@@ -22,6 +22,25 @@ python3 -m http.server 8000
 
 Apri [http://localhost:8000/](http://localhost:8000/).
 
+## Controlli pre-commit
+
+Gli hook verificano la sintassi dei JSON, i marcatori di conflitto e la
+formattazione di base della documentazione. Richiedono Python 3 e si installano
+con:
+
+```bash
+py -m pip install pre-commit
+py -m pre_commit install
+```
+
+Per eseguirli manualmente su tutti i file tracciati:
+
+```bash
+py -m pre_commit run --all-files
+```
+
+La configurazione usa `pre-commit-hooks` `v6.0.0`.
+
 ## Dati
 
 `final.json` contiene le geometrie della mappa. I CSV giornalieri, non inclusi in Git, devono essere disponibili nella cartella `csv/` con nomi da `20131101.csv` a `20131130.csv`. Se hai l'archivio `Data_Vis_Code_Files_CSV.tar.gz`, estrailo in `csv/` prima di avviare la pagina.
