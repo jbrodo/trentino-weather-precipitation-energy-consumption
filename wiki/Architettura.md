@@ -2,7 +2,7 @@
 
 [Indice](Home.md) | [Dati](Dati.md) | [Limiti](Limiti.md)
 
-La dashboard e' un'applicazione statica: HTML, CSS e JavaScript inline in [index.html](../index.html); jQuery/jQuery UI per controlli e richieste, D3 v3 per CSV e aggregazioni, TopoJSON per le geometrie, Leaflet 0.7 per mappa e layer. Non esistono API, database, build frontend o backend applicativo. Il server Python serve soltanto file statici.
+La dashboard e' un'applicazione statica: HTML, CSS e JavaScript inline in [index.html](../index.html); jQuery 3.7.1 e jQuery UI 1.14.2 per controlli e richieste, D3 7.9.0 per CSV, aggregazioni e grafici, TopoJSON Client 3.1.0 per le geometrie, Leaflet 1.9.4 per mappa e layer. Le dipendenze sono versionate negli URL CDN; non esistono API, database, build frontend o backend applicativo. Il server Python serve soltanto file statici.
 
 ## Riproduzione locale
 
@@ -16,4 +16,4 @@ python -m http.server 8000
 
 Aprire `http://localhost:8000/`. Verificare che `http://localhost:8000/csv/20131102.csv` e `http://localhost:8000/final.json` restituiscano dati. I CSV estratti restano ignorati da Git. L'archivio `Data_Vis_Code_Files-ready.zip` non sostituisce quello dei CSV giornalieri.
 
-La pagina usa dipendenze remote e URL HTTP per script, CSS e tile: browser moderni su HTTPS possono bloccare il contenuto misto; l'accesso alle CDN e alla mappa di base richiede rete. Il progetto include alcune copie locali delle librerie, ma non tutte sono attivate nella pagina. Leaflet JS e' caricato dalla copia locale `leaflet.js` (0.7.3) perche' `cdn.leafletjs.com` non risolve piu' (osservato: `ERR_NAME_NOT_RESOLVED`); il CSS arriva da unpkg alla stessa versione. Non introdurre un servizio backend senza una richiesta di funzionalita' che lo giustifichi.
+Gli script e i fogli di stile attivi sono caricati da CDN HTTPS; l'accesso alle CDN e alle tile OpenStreetMap richiede rete. Le copie locali legacy non sono referenziate dall'entry point principale. Non introdurre un servizio backend senza una richiesta di funzionalita' che lo giustifichi.

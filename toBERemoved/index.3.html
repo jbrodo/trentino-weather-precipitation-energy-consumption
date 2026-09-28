@@ -1,0 +1,266 @@
+<html>
+
+<head>
+    <title>HTML5</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=650, user-scalable=yes">
+    <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <link rel="stylesheet" href="jquery-ui.css" />
+    <script type="text/javascript" src="jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+    <!--<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>-->
+    <script type="text/javascript" src="leaflet.js"></script>
+    <script type="text/javascript" src="SliderControl.js"></script>
+
+    <!--<script src="http://d3js.org/topojson.v1.min.js"></script>-->
+    <script type="text/javascript" src="topojson.v1.min.js"></script>
+    <!--<script src="http://d3js.org/d3.v3.min.js"></script> -->
+    <script  type="text/javascript" src="d3.min.js"></script>
+    <!--<script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>-->
+    <script type="text/javascript" src="underscore-min.js"></script>
+    <script>
+        window.jQuery || document.write('<script src="jquery.min.js"><\/script>')
+    </script>
+    <style>
+        .axis {
+            font: 10px sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        .axis .domain {
+            fill: none;
+            stroke: #000;
+            stroke-opacity: .3;
+            stroke-width: 10px;
+            stroke-linecap: round;
+        }
+
+        .axis .halo {
+            fill: none;
+            stroke: #ddd;
+            stroke-width: 8px;
+            stroke-linecap: round;
+        }
+
+        .slider .handle {
+            fill: #fff;
+            stroke: #000;
+            stroke-opacity: .5;
+            stroke-width: 1.25px;
+            cursor: crosshair;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        #mapcanvas{
+            height:100%;
+        }
+    </style>
+    <script>
+        //format = d3.time.format("yyyymmddHHMM");
+        format = d3.time.format("%d-%m-%YT%H:%M:%S");
+        var geoJsonObject = [];
+        var selection = [];
+        var map;
+        var dates ;
+        $(document).ready(function(){
+
+            map = new L.Map('mapcanvas',{
+
+                fullscreenControl: true,
+                timeDimension: true,
+                timeDimensionControl: true
+
+            });
+            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+            var osm = new L.TileLayer(osmUrl, {attribution: osmAttrib});
+
+            // start the map in trentino
+            map.setView(new L.LatLng(46.2,11),9);
+            map.addLayer(osm);
+
+            //county.json is a topojson file
+
+            var myStyle = {
+                "color": "#003399",
+                "weight": 1,
+                "opacity": 0.65
+            };
+
+            //var dat1 = [];
+            //var dates;
+            //to merge csv data to json
+            //topojson -o final.json -e trentino-sololerigheimportanti.csv --id-property=id_cell,cellId -p=cellId=cellId,LINESET,avgcons,avgprec -- trentino-grid.json
+            var selected = {
+                "DG1000011":1,"DG1000023":1,"DG1000420":1,"DG1000421":1,"DG1000422":1,"DG1000423":1,"DG1000425":1,"DG1000496":1,"DG1000620":1,
+                "DG1000621":1,"DG1000622":1,"DG1000624":1,"DG1000625":1,"DG1000820":1,"DG1000821":1,"DG1000823":1,"DG1000824":1,"DG1000825":1,
+                "DG1001121":1,"DG1001123":1,"DG1001124":1,"DG1001125":1,"DG1001126":1,"DG1001127":1,"DG1001196":1,"DG1001320":1,"DG1001321":1,
+                "DG1001322":1,"DG1001323":1,"DG1001324":1,"DG1002020":1,"DG1002021":1,"DG1002022":1,"DG1002023":1,"DG1002024":1,"DG1002025":1,
+                "DG1002026":1,"DG1002120":1,"DG1002121":1,"DG1002122":1,"DG1002124":1,"DG1002125":1,"DG1002126":1,"DG1002128":1,"DG1002520":1,
+                "DG1002521":1,"DG1002522":1,"DG1002525":1,"DG1002527":1,"DG1002528":1,"DG1002529":1,"DG1002531":1,"DG1002532":1,"DG1002533":1,
+                "DG1002534":1,"DG1002535":1,"DG1002536":1,"DG1002537":1,"DG1002538":1,"DG1002539":1,"DG1003101":1,"DG1003103":1,"DG1003116":1,
+                "DG1003117":1,"DG1003119":1,"DG1003301":1,"DG1003302":1,"DG1003315":1,"DG1003316":1,"DG1003317":1,"DG1003318":1,"DG1010901":1,
+                "DG1010902":1,"DG1010903":1,"DG1011520":1,"DG1011521":1,"DG1011522":1,"DG1011523":1,"DG1011524":1,"DG1011620":1,"DG1011621":1,
+                "DG1011622":1,"DG1011623":1,"DG1011624":1,"DG1011625":1,"DG1011626":1,"DG1011627":1,"DG1011629":1,"DG1011920":1,"DG1011921":1,
+                "DG1011922":1,"DG1011923":1,"DG1011924":1,"DG1011925":1,"DG1011926":1,"DG1011927":1,"DG1011928":1,"DG1011930":1,"DG1011931":1,
+                "DG1012220":1,"DG1012221":1,"DG1012223":1,"DG1012320":1,"DG1012321":1,"DG1012327":1,"DG1012420":1,"DG1012421":1,"DG1012423":1,
+                "DG1012424":1,"DG1012425":1,"DG1012426":1,"DG1012427":1,"DG1012430":1,"DG1012720":1,"DG1012721":1,"DG1012722":1,"DG1012723":1,
+                "DG1012724":1,"DG1012821":1,"DG1012822":1,"DG1012823":1,"DG1012901":1,"DG1012902":1,"DG1012905":1,"DG1012907":1,"DG1012908":1,
+                "DG1012915":1,"DG1012917":1,"DG1012921":1,"DG1012922":1,"DG1012923":1,"DG1012928":1,"DG1012929":1,"DG1013001":1,"DG1013002":1,
+                "DG1013004":1,"DG1013007":1,"DG1013015":1,"DG1013016":1,"DG1013017":1,"DG1013023":1,"DG1013220":1,"DG1013221":1,"DG1013222":1,
+                "DG1013223":1,"DG1013320":1,"DG1013321":1,"DG1013322":1,"DG1013323":1,"DG1013325":1,"DG1013503":1,"DG1013504":1,"DG1013505":1,
+                "DG1013596":1,"DG1013701":1,"DG1013702":1,"DG1013703":1,"DG1013704":1,"DG1013707":1,"DG1013708":1,"DG1022120":1,"DG1022121":1,
+                "DG1022123":1,"DG1022124":1,"DG1022125":1,"DG1022320":1,"DG1022321":1,"DG1022322":1,"DG1022323":1,"DG1026020":1,"DG1026021":1,
+                "DG1026022":1,"DG1026023":1,"DG1026024":1,"DG1026025":1,"DG1026026":1,"DG1026027":1,"DG1026028":1,"DG1026029":1,"DG1026030":1,
+                "DG1026099":1,"DG1031220":1,"DG1031221":1,"DG1056620":1,"DG1056621":1,"DG1056623":1,"DG1056624":1,"DG1056625":1,"DG1056626":1,
+                "DG1056696":1,"DG1099103":1,"DG1099111":1,"DG1099204":1,"DG1099205":1,"DG1099206":1,"DG1099207":1,"DG1099303":1,"DG1099502":1,
+                "DG1001120":1,"DG1099506":1
+            };
+            $.getJSON("final.json", function(data){
+                //$.getJSON("trentino-grid.json", function(data){
+                geoJsonObject = topojson.feature(data, data.objects.trentinogrid);
+                //$(document).ready(function() {
+
+                //"mid_lat","mid_long","p3_lat","p3_long","p2_lat","p0_long","p1_long","id_cell","p1_lat","p2_long","p0_lat","LINESET","NR_UBICAZIONI","STRINGTOBIGDECIMAL","avgprec","avgcons"
+                d3.csv('trentino-sololerigheimportanti.csv',function(d){
+                    //formatto la data come piace a noi
+                    //d.STRINGTOBIGDECIMALTIME = format.parse(d.STRINGTOBIGDECIMALTIME);
+                    return d;
+                }, function(data2){
+                    //var featuresgrid= geoJsonObject.features;
+                    //annida i dati in un json strutturato
+                    var nested = d3.nest()
+                            .key(function(d) { return d.STRINGTOBIGDECIMAL; })
+                            .key(function(d) { return d.LINESET; })
+                            .rollup(aggrTime)
+                            .entries(data2);
+
+                    console.log("nested",nested);
+                    dates = d3.set();
+                    nested.forEach(function (d){
+                       dates.add(d.key);
+                    });
+                    var filtered = nested.filter(function(d) {
+                        return d.key === "201311010000";
+                    });
+                    //var valuesfiltered =[] ;
+                    //valuesfiltered= filtered.values;
+                   console.log(filtered[0]);
+                   // console.log(filtered);
+                    var max_precipitation = d3.max( filtered[0].values, function(ddd) {
+                        return ddd.values.avgprec;
+                    });
+                    console.log(max_precipitation);
+                    filtered[0].values.forEach(function(dd) {
+                        //console.log(dd);
+                        //console.log(dd.key);
+                        //console.log(dd.values);
+
+                        var radius = d3.scale.pow()
+                                    .domain([0, max_precipitation])
+                                    .range([0, 1000]);
+                        L.circle(new L.LatLng(dd.values.y,dd.values.x),radius(dd.values.avgprec)).addTo(map);
+
+                        //provo a mergiare le lineset
+                        var linesetcells = topojson.merge(
+                                data,
+                                data.objects.trentinogrid.geometries.filter(
+                                        function(d) {
+                                            if($.inArray(d.id.toString(),dd.values.cells)<0){
+                                                return false;
+                                            }else{
+                                                return true;
+                                            }
+                                        })
+                        );
+                            L.geoJson(linesetcells,{
+                                style:{
+                                    "color": "green",
+                                    "weight":"1",
+                                    //"stroke": "black",
+                                    "fill-opacity": 0.6
+                                }
+                            }).addTo(map);
+                    });
+                });
+
+
+                //seleziono solo le celle appartenenti ad un LINESET
+                //selection = {
+                //    type: "FeatureCollection",
+                //    features: geoJsonObject.features.filter(function(d) {
+                //        return d.properties.LINESET in selected;
+                //    })};
+                //questo stampa solo le celle che sono in una line set
+               // L.geoJson(selection,{
+                //    style:{
+              //          "color": "red",
+               //         "weight":"1",
+               //         //"stroke": "black",
+               //         "fill-opacity": 0.6
+               //     }
+               // }).addTo(map);
+
+                //questo stampa tutta la grid
+               // L.geoJson(geoJsonObject,{
+                //    style:myStyle
+                //}).addTo(map);
+
+            });
+        });
+        function aggrTime(leaves) {
+            var ubicazioni = d3.sum(leaves, function(d) {
+                return d.NR_UBICAZIONI;
+            });
+
+            var coords = leaves.map(function(d) {
+                return [+d.mid_long, +d.mid_lat];
+            });
+
+            var center_x = d3.mean(coords, function(d) {
+                return d[0];
+            });
+
+            var center_y = d3.mean(coords, function(d) {
+                return d[1];
+            });
+
+            var avgcons = d3.mean(leaves,function (d){
+               return d.avgcons;
+            });
+
+            var avgprec = d3.mean(leaves,function (d){
+                return d.avgprec;
+            });
+
+            var cells = d3.set();//unique teams set
+            //console.log(leaves[0].id);
+            leaves.forEach(function(d) {
+                cells.add(d.id_cell);
+            });
+
+            return {
+                //'lineset' : lineset,
+                'ubicazioni' : ubicazioni,
+                'x' : center_x,
+                'y' : center_y,
+                'avgprec' : avgprec,
+                'avgcons' : avgcons,
+                'cells' : cells.values()
+            };
+        };//end document ready
+    </script>
+</head>
+
+<body>
+<div id="mapcanvas"></div>
+<div id="map"></div>
+</body>
+
+</html>

@@ -5,22 +5,19 @@
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!--<script type="text/javascript" src="jquery-1.9.1.min.js"></script>-->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/smoothness/jquery-ui.css" />
     <!--<script type="text/javascript" src="jquery-ui.js"></script>-->
-    <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <!-- cdn.leafletjs.com is no longer online: JS local (0.7.3), CSS from unpkg with the same version -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.3/dist/leaflet.css" />
-    <script type="text/javascript" src="leaflet.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.14.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!--<script type="text/javascript" src="SliderControl.js"></script>-->
     <!--<script type="text/javascript" src="leaflet.SliderControl.min.js"></script>-->
-    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
     <!--<script type="text/javascript" src="topojson.v1.min.js"></script>-->
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
     <!--<script  type="text/javascript" src="d3.min.js"></script> -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
-    <!--<script type="text/javascript" src="underscore-min.js"></script>-->
     <!--<script src="http://d3js.org/queue.v1.min.js"></script>-->
     <script>
         var DEBUG_LOGS = false;
@@ -864,7 +861,7 @@
 
         $(document).ready(function(){
 
-            color = d3.scale.linear()
+            color = d3.scaleLinear()
                     .domain([ -5,0, 5])
                     .range(["limegreen", "lightgray", "red"]);
 
@@ -904,7 +901,7 @@
                 var symbolsContainer = L.DomUtil.create('div', 'symbolsContainer');
                 var legendContainer = L.DomUtil.create('div', 'temporal-legend');
                 $(legendContainer).append('<h2 id="legendTitle">Precipitation</h2>');
-                var radius = d3.scale.pow()
+                var radius = d3.scalePow()
                         .domain([0, 16])
                         .range([0, 1000]);
                 for (var i = 0; i < grades.length; i++) {
@@ -1025,13 +1022,16 @@
             //    layer.bringToFront();
             //}
             debugLog(layer);
-            info.update(layer._options.statics);
+            info.update(layer.statics);
         }
         function resetHighlight(e) {
             debugLog(e);
+            if (!e.target.statics) {
+                return;
+            }
             e.target.setStyle( {
                     // "color": "green",
-                    "color": color(e.target._options.statics.avgcons/* + Math.random() * 10*/),
+                    "color": color(e.target.statics.avgcons/* + Math.random() * 10*/),
                     "weight": "2",
                     //"stroke": "black",
                     "opacity": "1",
@@ -1050,7 +1050,7 @@
             geoJsonObject = topojson.feature(data, data.objects.trentinogrid);
            // geoJsonObject = geoJson.feature(data, data.trentinogrid);
             debugLog("nested", nested);
-            dates = d3.set();
+            dates = new Set();
             nested.forEach(function (d){
                 dates.add(d.key);
             });
@@ -1224,7 +1224,7 @@
             fillColor: '#2262CC'
         };
         function drawPrecipitationCyrcle(dd,max_precipitation){
-            var radius = d3.scale.pow().exponent(1)
+            var radius = d3.scalePow().exponent(1)
                     .domain([0, max_precipitation])
                     .range([0,1000])
                     ;
@@ -1270,13 +1270,18 @@
 
                         },
 
-                        onEachFeature: onEachFeature,
-                        statics:{
-                            "LINESET":dd.key,
-                            "avgprec":dd.values.avgprec,
-                            "avgcons":dd.values.avgcons
-                        }
+                        onEachFeature: onEachFeature
 
+            });
+            // L.geoJson non propaga le opzioni custom ai layer figli: assegno statics dopo la creazione
+            var linesetStatics = {
+                "LINESET": dd.key,
+                "avgprec": dd.values.avgprec,
+                "avgcons": dd.values.avgcons
+            };
+            layerlinesetcells.statics = linesetStatics;
+            layerlinesetcells.eachLayer(function (child) {
+                child.statics = linesetStatics;
             });
             layerlinesetcells.bindPopup(linesetDetailsMarkup(dd.key, dd.values.avgprec, dd.values.avgcons));
             //console.log(layerlinesetcells);
@@ -1309,10 +1314,10 @@
                 return d.avgprec;
             });
 
-            var cells = d3.set();//unique teams set
+            var cells = new Set();//unique teams set
             //console.log(leaves[0].id);
             leaves.forEach(function(d) {
-                cells.add(d.id_cell);
+                cells.add(String(d.id_cell));
             });
 
             return {
@@ -1322,7 +1327,7 @@
                 'y' : center_y,
                 'avgprec' : avgprec,
                 'avgcons' : avgcons,
-                'cells' : cells.values()
+                'cells' : Array.from(cells)
             };
         }
 
@@ -1414,9 +1419,9 @@
         function loadDailyTrendDay(currentDay) {
             var dateKey = "201311" + (currentDay < 10 ? "0" : "") + currentDay;
             $("#trend-status").text("Caricamento del giorno " + currentDay + " di 30...");
-            d3.csv("csv/" + dateKey + ".csv", function (error, rows) {
-                var dailyValues = {day: currentDay, avgprec: null, avgcons: null};
-                if (!error && rows && rows.length) {
+            var dailyValues = {day: currentDay, avgprec: null, avgcons: null};
+            d3.csv("csv/" + dateKey + ".csv").then(function (rows) {
+                if (rows && rows.length) {
                     dailyValues.avgprec = d3.mean(rows, function (row) {
                         var value = +row.avgprec;
                         return isFinite(value) ? value : undefined;
@@ -1426,6 +1431,9 @@
                         return isFinite(value) ? value : undefined;
                     });
                 }
+            }).catch(function (error) {
+                debugWarn("Impossibile caricare csv/" + dateKey + ".csv.", error);
+            }).then(function () {
                 dailyTrend.push(dailyValues);
                 dailyTrendNextDay = currentDay + 1;
                 dailyTrendLoading = false;
@@ -1466,18 +1474,18 @@
                 var padding = Math.abs(extent[0]) * 0.05 || 1;
                 extent = [extent[0] - padding, extent[1] + padding];
             }
-            var x = d3.scale.linear().domain([1, 30]).range([0, innerWidth]);
-            var y = d3.scale.linear().domain(extent).nice().range([innerHeight, 0]);
+            var x = d3.scaleLinear().domain([1, 30]).range([0, innerWidth]);
+            var y = d3.scaleLinear().domain(extent).nice().range([innerHeight, 0]);
             var svg = container.append("svg")
                     .attr("viewBox", "0 0 " + width + " " + height)
                     .attr("role", "img")
                     .attr("aria-label", metric === "avgprec" ? "Media giornaliera delle precipitazioni" : "Media giornaliera del consumo energetico")
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-            var xAxis = d3.svg.axis().scale(x).orient("bottom").tickValues([1, 5, 10, 15, 20, 25, 30]).tickFormat(function (value) { return value; });
-            var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5).tickFormat(d3.format(".3g"));
-            var gridAxis = d3.svg.axis().scale(y).orient("left").ticks(5).tickSize(-innerWidth, 0, 0).tickFormat("");
-            var line = d3.svg.line()
+            var xAxis = d3.axisBottom(x).tickValues([1, 5, 10, 15, 20, 25, 30]).tickFormat(function (value) { return value; });
+            var yAxis = d3.axisLeft(y).ticks(5).tickFormat(d3.format(".3g"));
+            var gridAxis = d3.axisLeft(y).ticks(5).tickSizeInner(-innerWidth).tickSizeOuter(0).tickFormat("");
+            var line = d3.line()
                     .defined(function (entry) { return entry[metric] !== null && isFinite(entry[metric]); })
                     .x(function (entry) { return x(entry.day); })
                     .y(function (entry) { return y(entry[metric]); });
@@ -1525,19 +1533,16 @@
             var validRows = !loadError && rows ? rows.filter(function (row) {
                 return String(row.STRINGTOBIGDECIMAL).length === 12 && String(row.STRINGTOBIGDECIMAL).slice(0, 8) === dateKey && isFinite(+row.avgprec) && isFinite(+row.avgcons);
             }) : [];
-            hourlyTrend = d3.nest()
-                    .key(function (row) { return row.STRINGTOBIGDECIMAL.slice(8, 10); })
-                    .sortKeys(d3.ascending)
-                    .rollup(function (hourRows) {
+            hourlyTrend = d3.rollups(validRows, function (hourRows) {
                         var averageConsumption = d3.mean(hourRows, function (row) { return +row.avgcons; });
                         return {
                             avgprec: d3.mean(hourRows, function (row) { return +row.avgprec; }),
                             avgcons: Math.abs(averageConsumption) < 1e-12 ? 0 : averageConsumption
                         };
-                    })
-                    .entries(validRows)
+                    }, function (row) { return row.STRINGTOBIGDECIMAL.slice(8, 10); })
+                    .sort(function (left, right) { return d3.ascending(left[0], right[0]); })
                     .map(function (entry) {
-                        return {hour: entry.key, avgprec: entry.values.avgprec, avgcons: entry.values.avgcons};
+                        return {hour: entry[0], avgprec: entry[1].avgprec, avgcons: entry[1].avgcons};
                     });
             hourlyTrendRecordCount = validRows.length;
             if (activeView === "trend") {
@@ -1580,17 +1585,17 @@
             if (extent[0] === extent[1]) {
                 extent[1] = extent[0] + 1;
             }
-            var x = d3.scale.linear().domain(extent).nice().range([0, innerWidth]);
-            var y = d3.scale.ordinal().domain(hourlyTrend.map(function (entry) { return entry.hour; })).rangeRoundBands([0, innerHeight], .12);
+            var x = d3.scaleLinear().domain(extent).nice().range([0, innerWidth]);
+            var y = d3.scaleBand().domain(hourlyTrend.map(function (entry) { return entry.hour; })).range([0, innerHeight]).padding(.12);
             var svg = container.append("svg")
                     .attr("viewBox", "0 0 " + width + " " + height)
                     .attr("role", "img")
                     .attr("aria-label", metric === "avgprec" ? "Medie delle precipitazioni per ora" : "Medie del consumo energetico per ora")
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-            var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5).tickFormat(d3.format(".3g"));
-            var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(function (hour) { return hour + ":00"; });
-            var gridAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5).tickSize(-innerHeight, 0, 0).tickFormat("");
+            var xAxis = d3.axisBottom(x).ticks(5).tickFormat(d3.format(".3g"));
+            var yAxis = d3.axisLeft(y).tickFormat(function (hour) { return hour + ":00"; });
+            var gridAxis = d3.axisBottom(x).ticks(5).tickSizeInner(-innerHeight).tickSizeOuter(0).tickFormat("");
 
             svg.append("g").attr("class", "hourly-gridline hourly-axis")
                     .attr("transform", "translate(0," + innerHeight + ")").call(gridAxis);
@@ -1604,7 +1609,7 @@
                     .attr("x", function (entry) { return Math.min(x(0), x(entry[metric])); })
                     .attr("y", function (entry) { return y(entry.hour); })
                     .attr("width", function (entry) { return Math.max(1, Math.abs(x(entry[metric]) - x(0))); })
-                    .attr("height", y.rangeBand())
+                    .attr("height", y.bandwidth())
                     .style("fill", colorValue)
                     .append("title")
                     .text(function (entry) { return entry.hour + ":00 · " + d3.format(".4f")(entry[metric]); });
@@ -1707,35 +1712,41 @@
             nested=[];
             var requestedDay = String(day);
             //qui dovrei richiamare la cosa per aggiornare la mappa
-            d3.csv("csv/" + requestedDay + ".csv",function(d){
-                //formatto la data come piace a noi
-                //d.STRINGTOBIGDECIMALTIME = format.parse(d.STRINGTOBIGDECIMALTIME);
-                return d;
-            }, function(error, data2) {
+            d3.csv("csv/" + requestedDay + ".csv").then(function(data2) {
                 if (String(day) !== requestedDay) {
                     return;
                 }
-                if (error || !data2) {
+                if (!data2) {
                     nested = [];
                     aggregateHourlyTrend([], requestedDay, true);
                     renderDataTable();
-                    debugError("Impossibile caricare csv/" + requestedDay + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
                     return;
                 }
                 //var featuresgrid= geoJsonObject.features;
                 //annida i dati in un json strutturato
-                nested = d3.nest()
-                        .key(function (d) {
-                            return d.STRINGTOBIGDECIMAL;
+                nested = Array.from(d3.group(data2, function (row) {
+                    return row.STRINGTOBIGDECIMAL;
+                }), function (timestampGroup) {
+                    return {
+                        key: timestampGroup[0],
+                        values: Array.from(d3.group(timestampGroup[1], function (row) {
+                            return row.LINESET;
+                        }), function (linesetGroup) {
+                            return {key: linesetGroup[0], values: aggrTime(linesetGroup[1])};
                         })
-                        .key(function (d) {
-                            return d.LINESET;
-                        })
-                        .rollup(aggrTime)
-                        .entries(data2);
+                    };
+                });
                     aggregateHourlyTrend(data2, requestedDay, false);
                     renderDataTable();
                 $.getJSON(finaljson, filterandplotdata);
+            }).catch(function (error) {
+                if (String(day) !== requestedDay) {
+                    return;
+                }
+                nested = [];
+                aggregateHourlyTrend([], requestedDay, true);
+                renderDataTable();
+                debugError("Impossibile caricare csv/" + requestedDay + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
             });
         }
         var lineset="DG1000011";
