@@ -1,6 +1,7 @@
 {
   "name": "trentino-weather-precipitation-energy-consumption",
   "private": true,
+  "type": "module",
   "scripts": {
     "check:html": "html-validate index.html",
     "lint:js": "eslint index.html",
