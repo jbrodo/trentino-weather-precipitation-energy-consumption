@@ -6,6 +6,7 @@
 - Orario o lineset senza dati vengono gestiti senza accedere a elementi vuoti. Lo slider del tempo include 1440, che diventa `0000`, non la mezzanotte del giorno successivo.
 - I layer tematici sono ora contenuti in un gruppo Leaflet che viene pulito a ogni ridisegno. La modalità lineset singolo risponde al checkbox e ai filtri.
 - L'andamento giornaliero calcola una media aritmetica per riga dei valori nel CSV: non è ponderata per ubicazioni, timestamp o lineset e può riflettere diversamente copertura e numerosità delle righe tra giorni. I filtri della mappa non si applicano ai grafici.
+- I grafici orari usano la stessa media semplice per record raggruppata per ora. La mappa a picchi normalizza separatamente a ogni timestamp sul massimo visibile; l'altezza relativa non è un valore assoluto e non va confrontata tra orari.
 - Il valore di consumo influenza il colore del bordo, non il riempimento; la legenda di precipitazione e il layer switcher sono inattivi.
 - La pagina non gestisce esplicitamente errori di caricamento CSV/JSON e dipende da risorse esterne HTTP, con possibili problemi di rete e mixed content.
 - Gli errori di caricamento di `final.json` non hanno ancora uno stato esplicito nella pagina; le risorse remote e le tile dipendono dalla rete.

@@ -16,6 +16,8 @@
 
 La tabella mostra gli aggregati del giorno e timestamp selezionati, filtrati con gli intervalli della mappa. L'andamento giornaliero calcola separatamente `d3.mean` di `avgprec` e `avgcons` su tutte le righe presenti nel CSV del giorno: ogni riga valida ha lo stesso peso, senza ponderazione per `NR_UBICAZIONI`, timestamp o lineset. I filtri della mappa non si applicano ai grafici. Un CSV non disponibile o senza valori validi produce un giorno senza punto; non vengono interpolate lacune. Le unità restano non documentate.
 
+I grafici orari raggruppano le righe valide per ora di `STRINGTOBIGDECIMAL` e calcolano separatamente le medie semplici di `avgprec` e `avgcons`; il selettore usa il giorno già caricato dalla mappa. La mappa a picchi posiziona un marker al centrolineset calcolato da `aggrTime`: rappresenta una metrica alla volta e scala l'altezza sul massimo assoluto tra gli elementi visibili nell'istante. Per `avgcons`, valori positivi si estendono sopra lo zero e valori negativi sotto; il cambio di istante cambia la scala, quindi altezze di orari diversi non sono confrontabili come valori assoluti.
+
 Nel campione, `mid_lat` vale circa 11 e `mid_long` circa 46: i nomi delle colonne sembrano invertiti rispetto alle coordinate geografiche. Il codice imposta `x = mean(mid_long)` e `y = mean(mid_lat)`, poi costruisce `L.LatLng(x, y)`. Conservare questo ordine fino a verifica della provenienza dei dati.
 
 Non sono presenti metadati affidabili sulle unita' di misura, sul produttore, sulla qualita' dei dati, sulla licenza o sul significato del segno di `avgcons`. Le scale degli slider non bastano a determinarli: non inferire kWh o mm.

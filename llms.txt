@@ -8,6 +8,7 @@ La fonte primaria e' index.html; la vista Dati riusa filtri di giorno, orario, i
 
 - [Indice](wiki/Home.md): navigazione e criteri di apertura della documentazione.
 - [Funzionalita](wiki/Funzionalita.md): mappa, filtri, interazioni e funzioni inattive.
+- [Evoluzione dell'interfaccia](wiki/Evoluzione.md): tappe visive da start alle viste Mappa, Andamento e Dati.
 - [Dati](wiki/Dati.md): sorgenti, colonne e aggregazioni.
 - [Architettura](wiki/Architettura.md): componenti e avvio locale.
 - [Limiti](wiki/Limiti.md): limitazioni e controlli manuali.

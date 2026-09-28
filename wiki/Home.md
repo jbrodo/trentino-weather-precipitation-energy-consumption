@@ -5,6 +5,7 @@ Wiki del progetto basata su Markdown e link relativi. La pagina principale della
 ## Navigazione
 
 - [Funzionalita](Funzionalita.md)
+- [Evoluzione dell'interfaccia](Evoluzione.md)
 - [Dati e aggregazioni](Dati.md)
 - [Architettura e avvio](Architettura.md)
 - [Limiti e verifiche](Limiti.md)

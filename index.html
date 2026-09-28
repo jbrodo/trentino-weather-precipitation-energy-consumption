@@ -520,6 +520,152 @@
             color: var(--muted);
             font-size: 13px;
         }
+        .map-mode-controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 9px;
+            border: 1px solid rgba(23, 58, 52, .18);
+            border-radius: 3px;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: 0 1px 5px rgba(23, 58, 52, .15);
+        }
+        .map-mode-toggle {
+            display: inline-flex;
+            border: 1px solid #cbd8d1;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .map-mode-toggle button {
+            min-height: 30px;
+            padding: 4px 9px;
+            border: 0;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .map-mode-toggle button + button {
+            border-left: 1px solid #cbd8d1;
+        }
+        .map-mode-toggle button[aria-pressed="true"] {
+            background: var(--ink);
+            color: #fff;
+        }
+        .map-mode-controls label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+        .map-mode-controls select, .hourly-controls input {
+            min-height: 30px;
+            padding: 4px 7px;
+            border: 1px solid #cbd8d1;
+            border-radius: 3px;
+            background: #fff;
+            color: #24332f;
+            font: inherit;
+        }
+        #map-view {
+            position: relative;
+        }
+        .hourly-analysis {
+            margin-top: 34px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+        }
+        .hourly-heading {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+        .hourly-heading h3 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 16px;
+        }
+        .hourly-heading p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .hourly-controls {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .hourly-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 30px;
+        }
+        .hourly-chart {
+            min-width: 0;
+            padding-top: 12px;
+            border-top: 3px solid var(--line);
+        }
+        .hourly-chart:first-child {
+            border-top-color: #4e93a0;
+        }
+        .hourly-chart:last-child {
+            border-top-color: var(--accent);
+        }
+        .hourly-chart h4 {
+            margin: 0 0 8px;
+            color: var(--ink);
+            font-size: 14px;
+        }
+        .hourly-chart svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .hourly-axis path, .hourly-axis line {
+            fill: none;
+            stroke: #aebdb5;
+            shape-rendering: crispEdges;
+        }
+        .hourly-axis text {
+            fill: #53635e;
+            font: 10px "Segoe UI Variable", "Aptos", sans-serif;
+        }
+        .hourly-gridline line {
+            stroke: #e4ebe7;
+        }
+        .hourly-bar {
+            opacity: .86;
+        }
+        .hourly-status {
+            min-height: 18px;
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+        }
+        .spike-baseline {
+            stroke: rgba(36, 51, 47, .7);
+            stroke-width: 1.5;
+        }
+        .spike-icon {
+            border: 0;
+            background: transparent;
+        }
+        .spike-shape {
+            stroke: rgba(255, 255, 255, .85);
+            stroke-width: .7;
+        }
         #mapcanvas {
             width: 100%;
             height: 100%;
@@ -624,6 +770,20 @@
                 grid-template-columns: minmax(0, 1fr);
                 gap: 22px;
             }
+            .hourly-chart-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 22px;
+            }
+            .hourly-heading {
+                flex-direction: column;
+            }
+            .map-mode-controls {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
             #data-view, #trend-view {
                 padding: 20px 18px;
             }
@@ -644,10 +804,13 @@
         var layeravgprecyrcle,layerlinesetcells;
         var dataLayer;
         var activeView = "map";
+        var mapMode = "lines";
         var dailyTrend = [];
         var dailyTrendLoading = false;
         var dailyTrendNextDay = 1;
         var dailyTrendLoaded = false;
+        var hourlyTrend = [];
+        var hourlyTrendRecordCount = 0;
         var color;
         var finaljson = "final.json";//"final.json";//"trentino-grid.geojson";
         var info;
@@ -923,6 +1086,10 @@
                 return ddd.values.avgprec;
             });
             console.log(max_precipitation);
+            if (mapMode === "spikes") {
+                drawSpikeMap(filtered[0].values);
+                return;
+            }
             var linesetcells = [];
             var cyrclecells = [];
             if (x.checked == true) {
@@ -988,6 +1155,46 @@
             L.control.layers(overlayMaps).addTo(map);
             */
         };
+
+        function drawSpikeMap(entries) {
+            var metric = $("#spike-metric").val();
+            var usePrecipitation = metric === "avgprec";
+            var valueRange = usePrecipitation ? $("#sliderprecipitation").slider("values") : $("#sliderconsume").slider("values");
+            var selectedLineset = linesets[$("#sliderlineset").slider("value")];
+            var visibleEntries = entries.filter(function (entry) {
+                var value = entry.values[metric];
+                var withinRange = usePrecipitation ? value > valueRange[0] && value <= valueRange[1] : value >= valueRange[0] && value <= valueRange[1];
+                var matchesLineset = !$("#linesetcheck").prop("checked") || entry.key === selectedLineset;
+                return withinRange && matchesLineset && isFinite(value);
+            });
+            var maximumMagnitude = d3.max(visibleEntries, function (entry) {
+                return Math.abs(entry.values[metric]);
+            }) || 0;
+
+            visibleEntries.forEach(function (entry) {
+                var value = entry.values[metric];
+                var magnitude = maximumMagnitude ? Math.abs(value) / maximumMagnitude * 44 : 0;
+                var baseline = 54;
+                var tip = value < 0 ? baseline + magnitude : baseline - magnitude;
+                var fill = usePrecipitation ? "#4e93a0" : value < 0 ? "#53635e" : "#d45e3f";
+                var shape = magnitude ? '<path class="spike-shape" d="M14 ' + baseline + ' L23 ' + tip + ' L5 ' + tip + ' Z" fill="' + fill + '"/>' : '<circle cx="14" cy="54" r="3" fill="' + fill + '"/>';
+                var icon = L.divIcon({
+                    className: "spike-icon",
+                    html: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="108" viewBox="0 0 28 108" aria-hidden="true"><line class="spike-baseline" x1="2" y1="54" x2="26" y2="54"/>' + shape + "</svg>",
+                    iconSize: [28, 108],
+                    iconAnchor: [14, 54]
+                });
+                var marker = L.marker(new L.LatLng(entry.values.x, entry.values.y), {icon: icon});
+                marker.bindPopup(linesetDetailsMarkup(entry.key, entry.values.avgprec, entry.values.avgcons));
+                marker.on({
+                    mouseover: function () { info.update({LINESET: entry.key, avgprec: entry.values.avgprec, avgcons: entry.values.avgcons}); },
+                    mouseout: function () { info.update(); }
+                });
+                dataLayer.addLayer(marker);
+            });
+            $("#spike-note").text(usePrecipitation ? "Altezza relativa ai valori visibili nell'orario selezionato." : "Altezza proporzionale al valore assoluto; direzione sopra/sotto lo zero.");
+        }
+
         var highlightStyle = {
             color: '#2262CC',
             weight: 3,
@@ -1286,6 +1493,97 @@
             drawDailyChart("#trend-consumption", "avgcons", "#d45e3f");
         }
 
+        function aggregateHourlyTrend(rows, selectedDay, loadError) {
+            var dateKey = String(selectedDay);
+            var selectedDate = dateKey.slice(0, 4) + "-" + dateKey.slice(4, 6) + "-" + dateKey.slice(6, 8);
+            $("#hourly-day").val(selectedDate);
+            var validRows = !loadError && rows ? rows.filter(function (row) {
+                return String(row.STRINGTOBIGDECIMAL).length === 12 && String(row.STRINGTOBIGDECIMAL).slice(0, 8) === dateKey && isFinite(+row.avgprec) && isFinite(+row.avgcons);
+            }) : [];
+            hourlyTrend = d3.nest()
+                    .key(function (row) { return row.STRINGTOBIGDECIMAL.slice(8, 10); })
+                    .sortKeys(d3.ascending)
+                    .rollup(function (hourRows) {
+                        return {
+                            avgprec: d3.mean(hourRows, function (row) { return +row.avgprec; }),
+                            avgcons: d3.mean(hourRows, function (row) { return +row.avgcons; })
+                        };
+                    })
+                    .entries(validRows)
+                    .map(function (entry) {
+                        return {hour: entry.key, avgprec: entry.values.avgprec, avgcons: entry.values.avgcons};
+                    });
+            hourlyTrendRecordCount = validRows.length;
+            if (activeView === "trend") {
+                renderHourlyTrend(loadError ? "Impossibile caricare il CSV selezionato." : "");
+            }
+        }
+
+        function renderHourlyTrend(errorMessage) {
+            if (errorMessage) {
+                $("#hourly-status").text(errorMessage);
+            } else if (!hourlyTrend.length) {
+                $("#hourly-status").text("Nessun valore valido per questo giorno.");
+            } else {
+                $("#hourly-status").text(hourlyTrend.length + " fasce orarie · " + d3.format(",")(hourlyTrendRecordCount) + " record validi · media semplice per riga.");
+            }
+            drawHourlyChart("#hourly-precipitation", "avgprec", "#4e93a0");
+            drawHourlyChart("#hourly-consumption", "avgcons", "#d45e3f");
+        }
+
+        function drawHourlyChart(containerId, metric, colorValue) {
+            var container = d3.select(containerId);
+            container.selectAll("*").remove();
+            if (!hourlyTrend.length) {
+                container.append("div").attr("class", "trend-empty").text("Nessun dato disponibile.");
+                return;
+            }
+            var width = container.node().clientWidth;
+            if (width < 240) {
+                container.append("div").attr("class", "trend-empty").text("Allarga la finestra per visualizzare il grafico.");
+                return;
+            }
+            var margin = {top: 8, right: 14, bottom: 32, left: 56};
+            var rowHeight = 18;
+            var height = hourlyTrend.length * rowHeight + margin.top + margin.bottom;
+            var innerWidth = width - margin.left - margin.right;
+            var innerHeight = height - margin.top - margin.bottom;
+            var extent = d3.extent(hourlyTrend, function (entry) { return entry[metric]; });
+            extent[0] = Math.min(0, extent[0]);
+            extent[1] = Math.max(0, extent[1]);
+            if (extent[0] === extent[1]) {
+                extent[1] = extent[0] + 1;
+            }
+            var x = d3.scale.linear().domain(extent).nice().range([0, innerWidth]);
+            var y = d3.scale.ordinal().domain(hourlyTrend.map(function (entry) { return entry.hour; })).rangeRoundBands([0, innerHeight], .12);
+            var svg = container.append("svg")
+                    .attr("viewBox", "0 0 " + width + " " + height)
+                    .attr("role", "img")
+                    .attr("aria-label", metric === "avgprec" ? "Medie delle precipitazioni per ora" : "Medie del consumo energetico per ora")
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5).tickFormat(d3.format(".3g"));
+            var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(function (hour) { return hour + ":00"; });
+            var gridAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5).tickSize(-innerHeight, 0, 0).tickFormat("");
+
+            svg.append("g").attr("class", "hourly-gridline hourly-axis")
+                    .attr("transform", "translate(0," + innerHeight + ")").call(gridAxis);
+            svg.append("g").attr("class", "hourly-axis")
+                    .attr("transform", "translate(0," + innerHeight + ")").call(xAxis);
+            svg.append("g").attr("class", "hourly-axis").call(yAxis);
+            svg.append("line").attr("class", "spike-baseline")
+                    .attr("x1", x(0)).attr("x2", x(0)).attr("y1", 0).attr("y2", innerHeight);
+            svg.selectAll(".hourly-bar").data(hourlyTrend).enter().append("rect")
+                    .attr("class", "hourly-bar")
+                    .attr("x", function (entry) { return Math.min(x(0), x(entry[metric])); })
+                    .attr("y", function (entry) { return y(entry.hour); })
+                    .attr("width", function (entry) { return Math.max(1, Math.abs(x(entry[metric]) - x(0))); })
+                    .attr("height", y.rangeBand())
+                    .style("fill", colorValue)
+                    .append("title")
+                    .text(function (entry) { return entry.hour + ":00 · " + d3.format(".4f")(entry[metric]); });
+        }
+
         function switchView(viewName) {
             activeView = viewName;
             $("body").removeClass("view-map view-data view-trend").addClass("view-" + viewName);
@@ -1298,10 +1596,13 @@
                 window.setTimeout(function () { map.invalidateSize(); }, 0);
             } else if (viewName === "data") {
                 renderDataTable();
-            } else if (dailyTrendLoaded) {
-                renderDailyTrend();
             } else {
-                loadDailyTrend();
+                renderHourlyTrend();
+                if (dailyTrendLoaded) {
+                    renderDailyTrend();
+                } else {
+                    loadDailyTrend();
+                }
             }
         }
 
@@ -1378,16 +1679,21 @@
 
         function readCsv(){
             nested=[];
+            var requestedDay = String(day);
             //qui dovrei richiamare la cosa per aggiornare la mappa
-            d3.csv("csv/" + day + ".csv",function(d){
+            d3.csv("csv/" + requestedDay + ".csv",function(d){
                 //formatto la data come piace a noi
                 //d.STRINGTOBIGDECIMALTIME = format.parse(d.STRINGTOBIGDECIMALTIME);
                 return d;
             }, function(error, data2) {
+                if (String(day) !== requestedDay) {
+                    return;
+                }
                 if (error || !data2) {
                     nested = [];
+                    aggregateHourlyTrend([], requestedDay, true);
                     renderDataTable();
-                    console.error("Impossibile caricare csv/" + day + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
+                    console.error("Impossibile caricare csv/" + requestedDay + ".csv. Estrai i CSV dall'archivio nella cartella csv/.", error);
                     return;
                 }
                 //var featuresgrid= geoJsonObject.features;
@@ -1401,6 +1707,7 @@
                         })
                         .rollup(aggrTime)
                         .entries(data2);
+                    aggregateHourlyTrend(data2, requestedDay, false);
                     renderDataTable();
                 $.getJSON(finaljson, filterandplotdata);
             });
@@ -1492,6 +1799,30 @@
                 }
             });
             $("#lineset-search").on("input", renderDataTable);
+            $("#hourly-day").on("change", function () {
+                var selectedDay = String($(this).val() || "").replace(/-/g, "");
+                var dayOfMonth = +selectedDay.slice(6, 8);
+                if (selectedDay.length !== 8 || selectedDay.slice(0, 6) !== "201311" || dayOfMonth < 1 || dayOfMonth > 30) {
+                    $("#hourly-status").text("Scegli un giorno di novembre 2013.");
+                    return;
+                }
+                day = selectedDay;
+                $("#day").val(formatDay(day));
+                $("#sliderday").slider("value", +day);
+                readCsv();
+            });
+            $("[data-map-mode]").on("click", function () {
+                mapMode = $(this).attr("data-map-mode");
+                $("[data-map-mode]").attr("aria-pressed", "false")
+                        .filter("[data-map-mode='" + mapMode + "']").attr("aria-pressed", "true");
+                $("#spike-metric-control").toggle(mapMode === "spikes");
+                $.getJSON(finaljson, filterandplotdata);
+            });
+            $("#spike-metric").on("change", function () {
+                if (mapMode === "spikes") {
+                    $.getJSON(finaljson, filterandplotdata);
+                }
+            });
             $("#linesetcheck").on("change", function () {
                 $.getJSON(finaljson, filterandplotdata);
                 renderDataTable();
@@ -1499,6 +1830,10 @@
             $(window).on("resize", function () {
                 if (activeView === "trend" && dailyTrendLoaded) {
                     renderDailyTrend();
+                }
+                if (activeView === "trend") {
+                    drawHourlyChart("#hourly-precipitation", "avgprec", "#4e93a0");
+                    drawHourlyChart("#hourly-consumption", "avgcons", "#d45e3f");
                 }
             });
         });
@@ -1554,6 +1889,18 @@
 
 <main id="aside">
     <section id="map-view" class="view-panel" role="tabpanel" aria-labelledby="map-tab">
+        <div class="map-mode-controls">
+            <div class="map-mode-toggle" role="group" aria-label="Modalità della mappa">
+                <button type="button" data-map-mode="lines" aria-pressed="true">Lineset</button>
+                <button type="button" data-map-mode="spikes" aria-pressed="false">Picchi</button>
+            </div>
+            <label id="spike-metric-control" style="display: none;">Variabile
+                <select id="spike-metric" aria-label="Variabile rappresentata dai picchi">
+                    <option value="avgprec">Precipitazioni</option>
+                    <option value="avgcons">Consumo energetico</option>
+                </select>
+            </label>
+        </div>
         <div id="mapcanvas"></div>
     </section>
     <section id="data-view" class="view-panel" role="tabpanel" aria-labelledby="data-tab" aria-hidden="true">
@@ -1590,6 +1937,28 @@
                 <div id="trend-consumption"></div>
             </section>
         </div>
+        <section class="hourly-analysis" aria-labelledby="hourly-title">
+            <header class="hourly-heading">
+                <div>
+                    <h3 id="hourly-title">Profilo per fascia oraria</h3>
+                    <p>Medie orarie calcolate sui record validi del giorno selezionato. Le scale sono indipendenti; le barre non sono impilate.</p>
+                </div>
+                <label class="hourly-controls" for="hourly-day">Giorno
+                    <input id="hourly-day" type="date" min="2013-11-01" max="2013-11-30" value="2013-11-02">
+                </label>
+            </header>
+            <div class="hourly-chart-grid">
+                <section class="hourly-chart" aria-labelledby="hourly-precipitation-title">
+                    <h4 id="hourly-precipitation-title">Precipitazioni</h4>
+                    <div id="hourly-precipitation"></div>
+                </section>
+                <section class="hourly-chart" aria-labelledby="hourly-consumption-title">
+                    <h4 id="hourly-consumption-title">Consumo energetico</h4>
+                    <div id="hourly-consumption"></div>
+                </section>
+            </div>
+            <p id="hourly-status" class="hourly-status" aria-live="polite"></p>
+        </section>
     </section>
 </main>
 </body>
